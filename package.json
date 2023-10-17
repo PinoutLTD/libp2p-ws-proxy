@@ -1,0 +1,11 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@chainsafe/libp2p-noise": "^13.0.1",
+    "@chainsafe/libp2p-yamux": "^5.0.0",
+    "@libp2p/mplex": "^9.0.8",
+    "@libp2p/websockets": "^7.0.9",
+    "libp2p": "^0.46.14",
+    "ws": "^8.14.2"
+  }
+}
