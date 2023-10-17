@@ -1,5 +1,6 @@
 import { getRequest, sendResponse, handle, createNode } from "./libp2pHandler.js"
 import { createWebsocketServer } from "./wsHandler.js"
+import WebSocket from 'ws';
 
 
 async function run () {
@@ -19,10 +20,15 @@ async function run () {
   handle(node, '/call', async (msg, stream) => {
     console.log('command', msg)
     await sendResponse(stream, { result: true })
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(msg));
+      }
+    });
   })
 
   wss.on('connection', (ws) => {
-    console.log('Client connected');
+    console.log('Client connected via websocket');
   
     wss.on('message', (message) => {
       console.log(`Received: ${message}`);
@@ -33,7 +39,6 @@ async function run () {
     });
   });
   
-
 }
 
 
