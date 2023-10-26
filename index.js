@@ -27,17 +27,14 @@ async function run () {
     });
   })
 
-  wss.on('connection', (ws) => {
-    console.log('Client connected via websocket');
+  wss.on('connection', function connection(ws) {
+    ws.on('error', console.error);
   
-    wss.on('message', (message) => {
-      console.log(`Received: ${message}`);
-    });
-    
-    wss.on('close', () => {
-        console.log('Client disconnected');
+    ws.on('message', function message(data) {
+      console.log('received: %s', data);
     });
   });
+
   
 }
 
