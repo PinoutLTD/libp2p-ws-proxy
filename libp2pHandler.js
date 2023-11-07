@@ -6,6 +6,7 @@ import { pipe } from 'it-pipe'
 import { createLibp2p } from 'libp2p'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
+import { circuitRelayTransport } from 'libp2p/circuit-relay'
 
 const getRequest = async (stream) => {
     return pipe(
@@ -29,10 +30,11 @@ const sendResponse = async (stream, msg) => {
     })
 }
 
+
 const handle = (node, topic, fn) => {
     return node.handle(topic, async ({ stream }) => {
         fn(await getRequest(stream), stream)
-    })
+    }, {runOnTransientConnection: true})
 }
 
 const createNode = async () => {
@@ -41,7 +43,8 @@ const createNode = async () => {
           listen: ['/ip4/127.0.0.1/tcp/9999/ws']
         },
         transports: [
-          webSockets()
+          webSockets(),
+          circuitRelayTransport()
         ],
         streamMuxers: [
           yamux(), mplex()
