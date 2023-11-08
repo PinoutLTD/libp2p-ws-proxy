@@ -21,11 +21,14 @@ async function run () {
     console.log(ma.toString())
   })
 
-
   node.addEventListener('peer:connect', (evt) => {
     connectedPeerId = evt.detail.toString()
     console.log('received dial to me from:', connectedPeerId)
   })
+
+  node.addEventListener("self:peer:update", (evt) => {
+    console.log(`Advertising with a relay address of ${node.getMultiaddrs()}`);
+  });
 
   handle(node, '/call', async (msg, stream) => {
     console.log('command', msg)

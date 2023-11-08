@@ -7,6 +7,7 @@ import { createLibp2p } from 'libp2p'
 import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { circuitRelayTransport } from 'libp2p/circuit-relay'
+import { identifyService } from 'libp2p/identify'
 
 const getRequest = async (stream) => {
     return pipe(
@@ -44,14 +45,20 @@ const createNode = async () => {
         },
         transports: [
           webSockets(),
-          circuitRelayTransport()
+          circuitRelayTransport({
+            discoverRelays: 1
+          })
         ],
         streamMuxers: [
           yamux(), mplex()
         ],
         connectionEncryption: [
           noise()
-        ]
+        ],
+        services: {
+          identify: identifyService()
+        }
+
       })
     return node
 }
