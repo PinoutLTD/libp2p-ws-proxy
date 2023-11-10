@@ -1,5 +1,4 @@
 import { noise } from '@chainsafe/libp2p-noise'
-import { yamux } from '@chainsafe/libp2p-yamux'
 import { mplex } from '@libp2p/mplex'
 import { webSockets } from '@libp2p/websockets'
 import { pipe } from 'it-pipe'
@@ -38,6 +37,46 @@ const handle = (node, topic, fn) => {
     }, {runOnTransientConnection: true})
 }
 
+async function request(connection, topic, data) {
+  
+  if (connection.status !== "open") {
+    return;
+  }
+  const stream = await connection.newStream([topic], {
+    runOnTransientConnection: true
+  });
+  return pipe(
+    [uint8ArrayFromString(JSON.stringify(data))],
+    stream,
+    async function (source) {
+      let result = "";
+      for await (const data of source) {
+        result += uint8ArrayToString(data.subarray());
+      }
+      try {
+        return JSON.parse(result);
+      } catch (error) {
+        console.log("request error:", error.message)
+        return result
+      }
+    }
+  );
+}
+
+async function sendState(connection, data) {
+  try {
+    console.log(
+      connection.id.toString(),
+      connection.remoteAddr.toString(),
+      connection.status.toString()
+    );
+    const response = await request(connection, "/update", data);
+    console.log("Response from send state", response);
+  } catch (error) {
+    console.log("sendState error:", error.message);
+  }
+}
+
 const createNode = async () => {
     const node = await createLibp2p({
         addresses: {
@@ -50,7 +89,7 @@ const createNode = async () => {
           })
         ],
         streamMuxers: [
-          yamux(), mplex()
+          mplex()
         ],
         connectionEncryption: [
           noise()
@@ -63,4 +102,4 @@ const createNode = async () => {
     return node
 }
 
-export { getRequest, sendResponse, handle, createNode }
+export { getRequest, sendResponse, handle, createNode, sendState }
