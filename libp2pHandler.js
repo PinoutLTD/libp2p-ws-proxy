@@ -7,6 +7,39 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { circuitRelayTransport } from 'libp2p/circuit-relay'
 import { identifyService } from 'libp2p/identify'
+import fs from 'fs/promises'; 
+import PeerId from 'peer-id';
+import { createFromJSON } from '@libp2p/peer-id-factory'
+
+
+async function generateJSONPeerId(filePath) {
+  console.log("generating json...")
+    try {
+        const peerId = await PeerId.create();
+        const jsonContent = peerId.toJSON();
+        await fs.writeFile(filePath, JSON.stringify(jsonContent, null, 2));
+
+        console.log('Generated Private Key and stored in:', filePath);
+    } catch (error) {
+        console.error('Error generating and storing private key:', error);
+    }
+}
+
+async function loadOrGeneratePeerId(filePath) {
+  try {
+    await fs.access(filePath);
+  } catch (error) {
+    console.log(error.code)
+    if (error.code === 'ENOENT') {
+      console.log("No peerIdJson.json file. Creating a new one...")
+      await generateJSONPeerId(filePath);
+    }
+  }
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    const jsonContent = JSON.parse(fileContent);
+    return await createFromJSON(jsonContent);
+}
+
 
 const getRequest = async (stream) => {
     return pipe(
@@ -78,7 +111,10 @@ async function sendState(connection, data) {
 }
 
 const createNode = async () => {
-    const node = await createLibp2p({
+  const filePath = "peerIdJson.json"
+  const peerId = await loadOrGeneratePeerId(filePath)
+  const node = await createLibp2p({
+        peerId: peerId,
         addresses: {
           listen: ['/ip4/127.0.0.1/tcp/9999/ws']
         },

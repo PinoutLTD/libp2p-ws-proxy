@@ -6,6 +6,7 @@
     "@libp2p/mplex": "^9.0.8",
     "@libp2p/websockets": "^7.0.9",
     "libp2p": "^0.46.14",
+    "peer-id": "^0.16.0",
     "ws": "^8.14.2"
   }
 }
