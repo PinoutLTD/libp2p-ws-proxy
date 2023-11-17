@@ -44,6 +44,13 @@ async function run () {
   });
 
   wss.on('connection', function connection(ws) {
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        const peerIdMsg = JSON.stringify({"peerId": node.peerId.toString()})
+        client.send(peerIdMsg);
+        console.log("PeerId sent")
+      }
+    });
     ws.on('error', console.error);
   
     ws.on('message', async function message(data) {
