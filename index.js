@@ -48,7 +48,6 @@ async function run () {
   
     ws.on('message', async function message(data) {
       try {
-        console.log('received: %s', data)
         const msg = JSON.parse(data)
         console.log("Sending msg from HA...")
         for (const connection of node.getConnections()) {
