@@ -10,9 +10,11 @@ import { identifyService } from 'libp2p/identify'
 import fs from 'fs/promises'; 
 import PeerId from 'peer-id';
 import { createFromJSON } from '@libp2p/peer-id-factory'
+import { ISendResponseMsg, ISendStateMsg } from './interfaces'
+// import { Connection } from '@libp2p/interface/dist/src/connection'
 
 
-async function generateJSONPeerId(filePath) {
+async function generateJSONPeerId(filePath: string) {
   console.log("generating json...")
     try {
         const peerId = await PeerId.create();
@@ -25,12 +27,11 @@ async function generateJSONPeerId(filePath) {
     }
 }
 
-async function loadOrGeneratePeerId(filePath) {
+async function loadOrGeneratePeerId(filePath: string) {
   try {
     await fs.access(filePath);
   } catch (error) {
-    console.log(error.code)
-    if (error.code === 'ENOENT') {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       console.log("No peerIdJson.json file. Creating a new one...")
       await generateJSONPeerId(filePath);
     }
@@ -41,7 +42,7 @@ async function loadOrGeneratePeerId(filePath) {
 }
 
 
-const getRequest = async (stream) => {
+const getRequest = async (stream: any) => {
     return pipe(
         stream,
         async function (source) {
@@ -54,7 +55,7 @@ const getRequest = async (stream) => {
     )
 }
 
-const sendResponse = async (stream, msg) => {
+const sendResponse = async (stream: any, msg: ISendResponseMsg) => {
     return pipe(
         [uint8ArrayFromString(JSON.stringify(msg))],
         stream.sink
@@ -64,13 +65,15 @@ const sendResponse = async (stream, msg) => {
 }
 
 
-const handle = (node, topic, fn) => {
+const handle = (node: any, topic: string, fn: any) => {
+  //@ts-ignore
     return node.handle(topic, async ({ stream }) => {
         fn(await getRequest(stream), stream)
     }, {runOnTransientConnection: true})
 }
 
-async function request(connection, topic, data) {
+
+async function request(connection: any /* Connection*/, topic: string, data: ISendStateMsg) {
   
   if (connection.status !== "open") {
     return;
@@ -89,14 +92,14 @@ async function request(connection, topic, data) {
       try {
         return JSON.parse(result);
       } catch (error) {
-        console.log("request error:", error.message)
+        console.log("request error:", (error as NodeJS.ErrnoException).message)
         return result
       }
     }
   );
 }
 
-async function sendState(connection, data) {
+async function sendState(connection: any /* Connection*/, data: ISendStateMsg) {
   try {
     console.log(
       connection.id.toString(),
@@ -106,7 +109,7 @@ async function sendState(connection, data) {
     const response = await request(connection, "/update", data);
     console.log("Response from send state", response);
   } catch (error) {
-    console.log("sendState error:", error.message);
+    console.log("sendState error:", (error as NodeJS.ErrnoException).message);
   }
 }
 

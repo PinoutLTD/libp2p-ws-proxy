@@ -5,8 +5,15 @@
     "@chainsafe/libp2p-yamux": "^5.0.0",
     "@libp2p/mplex": "^9.0.8",
     "@libp2p/websockets": "^7.0.9",
+    "@types/ws": "^8.5.10",
     "libp2p": "^0.46.14",
     "peer-id": "^0.16.0",
     "ws": "^8.14.2"
+  },
+  "scripts": {
+    "build": "npx tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.2"
   }
 }
