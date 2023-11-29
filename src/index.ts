@@ -1,22 +1,24 @@
-import { sendResponse, handle, createNode, sendState } from "./libp2pHandler.js"
-import { createWebsocketServer } from "./wsHandler.js"
-import { WebSocket, WebSocketServer } from 'ws';
-import { multiaddr } from '@multiformats/multiaddr'
-import { libp2pEventsEnum } from "./interfaces/enums.js";
+import { sendResponse, handle, createNode } from "./libp2pHandler"
+import { WebSocketManager } from "./wsHandler"
 
+import { WebSocket } from 'ws';
+import { multiaddr } from '@multiformats/multiaddr'
+import { libp2pEventsEnum } from "./interfaces/enums";
 
 async function run() {
-  const wss: WebSocketServer = createWebsocketServer()
+  const wsManager = new WebSocketManager()
+
   const relayAddr = process.argv[2]
   if (!relayAddr) {
     throw new Error('the relay address needs to be specified as a parameter')
   }
   const node = await createNode()
+  wsManager.onConnectionManager(node)
 
   handle(node, '/call', async (msg: string, stream: any) => {
     console.log('command', msg)
     await sendResponse(stream, { result: true })
-    wss.clients.forEach((client) => {
+    wsManager.wsServer.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(msg));
         console.log("sent")
@@ -44,31 +46,8 @@ async function run() {
     console.log("connection closed")
   });
 
-  wss.on('connection', function connection(ws) {
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        const peerIdMsg = JSON.stringify({ "peerId": node.peerId.toString() })
-        client.send(peerIdMsg);
-        console.log("PeerId sent")
-      }
-    });
-    ws.on('error', console.error);
 
-    ws.on('message', async function message(data) {
-      try {
-        const msg = JSON.parse(data as unknown as string)
-        console.log("Sending msg from HA...")
-        for (const connection of node.getConnections()) {
-          sendState(connection, msg);
-        }
-      }
-      catch (error) {
-        console.error(error);
-      }
-
-    });
-  });
 }
 
-
 run()
+

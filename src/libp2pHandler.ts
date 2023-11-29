@@ -7,7 +7,7 @@ import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
 import { circuitRelayTransport } from 'libp2p/circuit-relay'
 import { identifyService } from 'libp2p/identify'
-import fs from 'fs/promises'; 
+import fs from 'fs/promises';
 import PeerId from 'peer-id';
 import { createFromJSON } from '@libp2p/peer-id-factory'
 import { ISendResponseMsg, ISendStateMsg } from './interfaces'
@@ -16,15 +16,15 @@ import { ISendResponseMsg, ISendStateMsg } from './interfaces'
 
 async function generateJSONPeerId(filePath: string) {
   console.log("generating json...")
-    try {
-        const peerId = await PeerId.create();
-        const jsonContent = peerId.toJSON();
-        await fs.writeFile(filePath, JSON.stringify(jsonContent, null, 2));
+  try {
+    const peerId = await PeerId.create();
+    const jsonContent = peerId.toJSON();
+    await fs.writeFile(filePath, JSON.stringify(jsonContent, null, 2));
 
-        console.log('Generated Private Key and stored in:', filePath);
-    } catch (error) {
-        console.error('Error generating and storing private key:', error);
-    }
+    console.log('Generated Private Key and stored in:', filePath);
+  } catch (error) {
+    console.error('Error generating and storing private key:', error);
+  }
 }
 
 async function loadOrGeneratePeerId(filePath: string) {
@@ -36,45 +36,45 @@ async function loadOrGeneratePeerId(filePath: string) {
       await generateJSONPeerId(filePath);
     }
   }
-    const fileContent = await fs.readFile(filePath, 'utf-8');
-    const jsonContent = JSON.parse(fileContent);
-    return await createFromJSON(jsonContent);
+  const fileContent = await fs.readFile(filePath, 'utf-8');
+  const jsonContent = JSON.parse(fileContent);
+  return await createFromJSON(jsonContent);
 }
 
 
 const getRequest = async (stream: any) => {
-    return pipe(
-        stream,
-        async function (source) {
-        let result = ''
-        for await (const data of source) {
-            result += uint8ArrayToString(data.subarray())
-        }
-        return JSON.parse(result)
-        }
-    )
+  return pipe(
+    stream,
+    async function (source) {
+      let result = ''
+      for await (const data of source) {
+        result += uint8ArrayToString(data.subarray())
+      }
+      return JSON.parse(result)
+    }
+  )
 }
 
 const sendResponse = async (stream: any, msg: ISendResponseMsg) => {
-    return pipe(
-        [uint8ArrayFromString(JSON.stringify(msg))],
-        stream.sink
-    ).finally(() => {
-        stream.close()
-    })
+  return pipe(
+    [uint8ArrayFromString(JSON.stringify(msg))],
+    stream.sink
+  ).finally(() => {
+    stream.close()
+  })
 }
 
 
 const handle = (node: any, topic: string, fn: any) => {
   //@ts-ignore
-    return node.handle(topic, async ({ stream }) => {
-        fn(await getRequest(stream), stream)
-    }, {runOnTransientConnection: true})
+  return node.handle(topic, async ({ stream }) => {
+    fn(await getRequest(stream), stream)
+  }, { runOnTransientConnection: true })
 }
 
 
 async function request(connection: any /* Connection*/, topic: string, data: ISendStateMsg) {
-  
+
   if (connection.status !== "open") {
     return;
   }
@@ -117,28 +117,28 @@ const createNode = async () => {
   const filePath = "peerIdJson.json"
   const peerId = await loadOrGeneratePeerId(filePath)
   const node = await createLibp2p({
-        peerId: peerId,
-        addresses: {
-          listen: ['/ip4/127.0.0.1/tcp/9999/ws']
-        },
-        transports: [
-          webSockets(),
-          circuitRelayTransport({
-            discoverRelays: 1
-          })
-        ],
-        streamMuxers: [
-          mplex()
-        ],
-        connectionEncryption: [
-          noise()
-        ],
-        services: {
-          identify: identifyService()
-        }
-
+    peerId: peerId,
+    addresses: {
+      listen: ['/ip4/127.0.0.1/tcp/9999/ws']
+    },
+    transports: [
+      webSockets(),
+      circuitRelayTransport({
+        discoverRelays: 1
       })
-    return node
+    ],
+    streamMuxers: [
+      mplex()
+    ],
+    connectionEncryption: [
+      noise()
+    ],
+    services: {
+      identify: identifyService()
+    }
+
+  })
+  return node
 }
 
 export { getRequest, sendResponse, handle, createNode, sendState }
