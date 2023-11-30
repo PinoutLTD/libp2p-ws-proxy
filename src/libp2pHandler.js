@@ -21,10 +21,11 @@ export class Libp2pManager {
 
   constructor() {
     this.configuration = new ConfigurationManager()
+    this.realayAddress = process.env.RELAY_ADDRESS
   }
 
   connect2NodeViaRelay(node, peerId) {
-    const address = `${process.env.RELAY_ADDRESS}/p2p-circuit/${peerId}`
+    const address = `${this.realayAddress}/p2p-circuit/${peerId}`
     return node.dial(multiaddr(address))
     .then(connection => connection)
     .catch(error => {
