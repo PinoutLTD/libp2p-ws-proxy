@@ -46,6 +46,7 @@ export class WebSocketManager {
       const protocols = msg.protocols_to_listen
       protocols.forEach((protocol) => {
         this.libp2pManager.handle(node, protocol, async (msg, stream) => {
+          await this.libp2pManager.sendResponse(stream, { result: true })
           this.#proxyLibp2pMsg2WS(msg, protocol)
         })
       })   
@@ -56,10 +57,14 @@ export class WebSocketManager {
       const protocol = msg.protocol
       const serverPeerId = msg.serverPeerId
       if (serverPeerId) {
-        const connection = this.libp2pManager.checkConnectionByPeerId(serverPeerId) 
-                            ? this.libp2pManager.checkConnectionByPeerId(serverPeerId)
-                            : this.libp2pManager.connect2NodeViaRelay(node, serverPeerId)
-        this.libp2pManager.sendMsg(connection, msg.data, protocol)
+        if (this.libp2pManager.checkConnectionByPeerId(node, serverPeerId)) {
+          const connection = this.libp2pManager.checkConnectionByPeerId(node, serverPeerId)
+          this.libp2pManager.sendMsg(connection, msg.data, protocol)
+        } else {
+            this.libp2pManager.connect2NodeViaRelay(node, serverPeerId).then(connection => {
+              this.libp2pManager.sendMsg(connection, msg.data, protocol)
+            }).catch(error => {console.log("Error in resolving connection promise", error)})
+        }   
       } else {
         for (const connection of node.getConnections()) {
           this.libp2pManager.sendMsg(connection, msg.data, protocol)

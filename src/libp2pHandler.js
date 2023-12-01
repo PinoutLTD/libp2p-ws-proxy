@@ -25,15 +25,15 @@ export class Libp2pManager {
   }
 
   connect2NodeViaRelay(node, peerId) {
-    const address = `${this.realayAddress}/p2p-circuit/${peerId}`
+    const address = `${this.realayAddress}/p2p-circuit/p2p/${peerId}`
     return node.dial(multiaddr(address))
     .then(connection => connection)
     .catch(error => {
-      console.error(error);
+      console.error("Error in connect2NodeViaRelay", error);
     });
   }
 
-  checkConnectionByPeerId(peerId) {
+  checkConnectionByPeerId(node, peerId) {
     for (const connection of node.getConnections()) {
       if (peerId == connection.remotePeer.toString()) {
         console.log(`PeerId ${peerId} connected.}`)
@@ -176,5 +176,4 @@ class ConfigurationManager {
       return await createFromJSON(jsonContent);
   }
 }
-
 
