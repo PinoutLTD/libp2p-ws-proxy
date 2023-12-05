@@ -57,11 +57,11 @@ export class MessageHandler {
         const protocol = msg.protocol
         const serverPeerId = msg.serverPeerId
         if (serverPeerId) {
-          if (this.libp2pManager.checkConnectionByPeerId(serverPeerId)) {
-            const connection = this.libp2pManager.checkConnectionByPeerId(serverPeerId)
+          if (this.libp2pManager.checkConnectionByPeerId(node, serverPeerId)) {
+            const connection = this.libp2pManager.checkConnectionByPeerId(node, serverPeerId)
             this.libp2pManager.sendMsg(connection, msg.data, protocol)
           } else {
-              this.libp2pManager.connect2NodeViaRelay(serverPeerId).then(connection => {
+              this.libp2pManager.connect2NodeViaRelay(node, serverPeerId).then(connection => {
                 this.libp2pManager.sendMsg(connection, msg.data, protocol)
               }).catch(error => {console.log("Error in resolving connection promise", error)})
           }   
