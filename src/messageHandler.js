@@ -18,27 +18,41 @@ export class MessageHandler {
   }
 
   /**
-   * Proxying messages from Libp2p clients to websocket clients. The message is sent only 
-   * to ws clients that are listening the protocol.
+   * Sends the message tothe  ws clients. If protocol parameter is
+   * set, he message will be sent only to these clients who are listening to this protocol.
+   * @param  msg The message to proxy.
+   * @param  protocol Libp2p protocol from which the message originated.
+   * @param wsServer Instance of the websocket server.
+   * @param wsClients Map of all the ws clients.
+   */
+  sendMsg2WSClients(wsServer, wsClients, msg, protocol = undefined) {
+    for (const client of wsServer.clients) {
+      if (protocol) {
+        const clientProtocols = wsClients.get(client).protocolsToListen
+        if (!clientProtocols.includes(protocol)) {
+          return
+        }
+      }
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify(msg));
+          this.logger.INFO("Message has been sent to ws client")
+        }
+    }
+  }
+
+  /**
+   * Proxies messages from Libp2p clients to websocket clients.
    * @param  msg The message to proxy.
    * @param  protocol Libp2p protocol from which the message originated.
    * @param wsServer Instance of the websocket server.
    * @param wsClients Map of all the ws clients.
    */
   #proxyLibp2pMsg2WS(msg, protocol, wsServer, wsClients) {
-    wsServer.clients.forEach((client) => {
-      const clientProtocols = wsClients.get(client).protocolsToListen
-      if (clientProtocols.includes(protocol)) {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify(msg));
-          this.logger.INFO("Libp2p msg has been sent to ws client")
-        }
-      }
-    })
+    this.sendMsg2WSClients(wsServer, wsClients, msg, protocol)
   }
 
   /**
-   * Method to send saved messages to a new connected libp2p client.
+   * Sends saved messages to a new connected libp2p client.
    * @param connectedPeerId Peer id of the new client.
    * @param node Instance of the libp2p node.
    */
@@ -60,7 +74,7 @@ export class MessageHandler {
   }
 
   /**
-   * Handler for the initial message from a WebSocket client. It stores from which libp2p protocol this
+   * Handler for an initial message from a WebSocket client. It stores from which libp2p protocol this
    * client wants to get messages and opens a corresponding libp2p handler for each of one. 
    * @param  msg The message from ws client.
    * @param wsServer Instance of the websocket server.

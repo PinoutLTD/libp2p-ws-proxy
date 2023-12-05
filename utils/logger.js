@@ -1,4 +1,6 @@
-
+/**
+ * Logger manager.
+ */
 export class Logger {
 
     #getTimeDate() {
@@ -19,7 +21,7 @@ export class Logger {
     }
 
     ERROR(msg, functionName = undefined) {
-        const { currentDate, currentTime } = this.#getTimeDate
+        const { currentDate, currentTime } = this.#getTimeDate()
         console.log(`${currentDate} ${currentTime} - ERROR ${functionName ? functionName : ""}`, msg)
     }
 }

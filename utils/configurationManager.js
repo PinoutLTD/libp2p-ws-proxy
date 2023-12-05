@@ -2,12 +2,19 @@ import fs from 'fs/promises';
 import PeerId from 'peer-id';
 import { createFromJSON } from '@libp2p/peer-id-factory'
 
+/**
+ * Libp2p node configuration manager. It checks if the JSON peer id exists,
+ * generates a new one if not and returns it.
+ */
 export class ConfigurationManager {
 
     constructor() {
       this.filePath = process.env.PEER_ID_CONFIG_PATH
     }
-  
+
+    /**
+   * Generates peer id JSON file.
+   */
     async #generateJSONPeerId() {
       this.logger.INFO("Generating json config...")
       try {
@@ -20,6 +27,9 @@ export class ConfigurationManager {
       }
     }
   
+    /**
+   * Generates peer id json file if it not exists and returns it.
+   */
     async loadOrGeneratePeerId() {
       try {
         await fs.access(this.filePath);
