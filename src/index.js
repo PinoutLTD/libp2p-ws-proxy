@@ -15,6 +15,7 @@ async function run() {
   const node = await libp2pManager.createNode()
   const messageManager = new MessageHandler(libp2pManager)
   const wsManager = new WebSocketManager(messageManager)
+  wsManager.onConnectionManager(node)
 
 
   console.log(`Node started with id ${node.peerId.toString()}`);
