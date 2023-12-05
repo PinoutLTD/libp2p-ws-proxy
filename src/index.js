@@ -1,14 +1,20 @@
 import { Libp2pManager } from "./libp2pHandler.js";
 import { WebSocketManager } from "./wsHandler.js"
+import { MessageHandler } from "./messageHandler.js"
 import { multiaddr } from '@multiformats/multiaddr'
+import { createDir4SavedData } from "../utils/saveData.js"
 
+import dotenv from 'dotenv';
 
-async function run () {
+dotenv.config();
+
+async function run() {
+  await createDir4SavedData()
   const libp2pManager = new Libp2pManager()
-  const wsManager = new WebSocketManager(libp2pManager)
-
+  
   const node = await libp2pManager.createNode()
-  wsManager.onConnectionManager(node)
+  const messageManager = new MessageHandler(libp2pManager)
+  const wsManager = new WebSocketManager(messageManager)
 
 
   console.log(`Node started with id ${node.peerId.toString()}`);
@@ -31,7 +37,6 @@ async function run () {
   node.addEventListener("connection:close", () => {
     console.log("connection closed")
   });
-
 
 }
 

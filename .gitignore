@@ -1,3 +1,4 @@
 node_modules/
 peerIdJson.json
 .env
+saved_data/
