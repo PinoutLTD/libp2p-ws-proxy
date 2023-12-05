@@ -53,7 +53,7 @@ export class WebSocketManager {
               
               if ("protocols_to_listen" in msg) {
                 this.updateClientInfo(ws, { protocolsToListen: msg.protocols_to_listen })
-                this.messageManager.onWSInitialMessage(msg, this.wsServer, this.clients)
+                this.messageManager.onWSInitialMessage(msg, this.wsServer, this.clients, node)
               } else {
                 this.messageManager.onWSMessage(msg, node)
               }

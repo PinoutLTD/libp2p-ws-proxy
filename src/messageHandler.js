@@ -35,11 +35,12 @@ export class MessageHandler {
      * @param  msg The message from ws client.
      * @param wsServer Instance of the websocket server.
      * @param wsClients Map of all the ws clients.
+     * @param node Instance of libp2p node
      */
-    onWSInitialMessage(msg, wsServer, wsClients) {
+    onWSInitialMessage(msg, wsServer, wsClients, node) {
         const protocols = msg.protocols_to_listen
         protocols.forEach((protocol) => {
-          this.libp2pManager.handle(protocol, async (msg, stream) => {
+          this.libp2pManager.handle(node, protocol, async (msg, stream) => {
             await this.libp2pManager.sendResponse(stream, { result: true })
             this.#proxyLibp2pMsg2WS(msg, protocol, wsServer, wsClients)
           })
