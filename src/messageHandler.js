@@ -1,9 +1,10 @@
+import WebSocket from 'ws'
+
 /**
  * Handler for messsages from libp2p and websocket channels. It proxes msgs from
  * libp2p to websocket clients and msgs from websocket clients to libp2p nodes.
  * @param  libp2pManager Instance of Libp2pManager ckass.
  */
-
 export class MessageHandler {
     constructor(libp2pManager) {
         this.libp2pManager = libp2pManager
