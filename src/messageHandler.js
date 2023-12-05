@@ -1,4 +1,6 @@
 import WebSocket from 'ws'
+import { saveMsg2File } from "../utils/saveData.js"
+import { convertsPythonBool2JSBool } from "../utils/boolConverter.js"
 
 /**
  * Handler for messsages from libp2p and websocket channels. It proxes msgs from
@@ -58,6 +60,12 @@ export class MessageHandler {
         console.log("Sending msg from ws to libp2p...")
         const protocol = msg.protocol
         const serverPeerId = msg.serverPeerId
+        const  isData2Save = convertsPythonBool2JSBool(msg.save_data)
+
+        if (isData2Save) {
+          saveMsg2File(msg)
+        }
+        
         if (serverPeerId) {
           if (this.libp2pManager.checkConnectionByPeerId(node, serverPeerId)) {
             const connection = this.libp2pManager.checkConnectionByPeerId(node, serverPeerId)
