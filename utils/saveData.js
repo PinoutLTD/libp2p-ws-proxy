@@ -6,20 +6,20 @@ dotenv.config();
 
 const directoryPath = process.env.SAVED_DATA_DIR_PATH
 
-export async function createDir4SavedData() {
+export async function createDir4SavedData(logger) {
     try {
       await fs.access(directoryPath);
-      console.log(`Directory '${directoryPath}' already exists.`);
+      logger.INFO(`Directory '${directoryPath}' already exists.`);
     } catch (error) {
       await fs.mkdir(directoryPath);
-      console.log(`Directory '${directoryPath}' created.`);
+      logger.INFO(`Directory '${directoryPath}' created.`);
     }
   
   }
 
-export function saveMsg2File(msg) {
-  const filePath = `../${directoryPath}/${msg.protocol}.json`
-  fs.writeFile(filePath, msg)
-  .then(() => console.log('Data written to file successfully.'))
-  .catch((err) => console.error('Error writing to file:', err));
+export function saveMsg2File(msg, logger) {
+  const filePath = `${directoryPath}${msg.protocol}.json`
+  fs.writeFile(filePath, JSON.stringify(msg))
+  .then()
+  .catch((error) => logger.ERROR(error, "saveMsg2File"));
 }

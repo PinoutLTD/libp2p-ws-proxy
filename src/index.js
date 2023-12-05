@@ -1,42 +1,45 @@
-import { Libp2pManager } from "./libp2pHandler.js";
-import { WebSocketManager } from "./wsHandler.js"
+import { Libp2pManager } from "./libp2pManager.js";
+import { WebSocketManager } from "./wsManager.js"
 import { MessageHandler } from "./messageHandler.js"
 import { multiaddr } from '@multiformats/multiaddr'
 import { createDir4SavedData } from "../utils/saveData.js"
+import { Logger  } from "../utils/logger.js";
 
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 async function run() {
-  await createDir4SavedData()
-  const libp2pManager = new Libp2pManager()
+  const logger = new Logger()
+  await createDir4SavedData(logger)
+  const libp2pManager = new Libp2pManager(logger)
   
   const node = await libp2pManager.createNode()
-  const messageManager = new MessageHandler(libp2pManager)
-  const wsManager = new WebSocketManager(messageManager)
+  const messageHandler = new MessageHandler(libp2pManager, logger)
+  const wsManager = new WebSocketManager(messageHandler, logger)
   wsManager.onConnectionManager(node)
 
 
-  console.log(`Node started with id ${node.peerId.toString()}`);
+  logger.INFO(`Node started with id ${node.peerId.toString()}`);
   const conn = await node.dial(multiaddr(libp2pManager.realayAddress))
   
-  console.log(`Connected to the relay ${conn.remotePeer.toString()}`)
+  logger.INFO(`Connected to the relay ${conn.remotePeer.toString()}`)
 
   node.addEventListener("self:peer:update", (evt) => {
-    console.log(`Advertising with a relay address of ${node.getMultiaddrs()}`);
+    logger.INFO(`Advertising with a relay address of ${node.getMultiaddrs()}`);
   });
 
-  node.addEventListener('peer:connect', (evt) => {
+  node.addEventListener('peer:connect', async (evt) => {
     const connectedPeerId = evt.detail.toString()
-    console.log('received dial to me from:', connectedPeerId)
+    logger.INFO('received dial to me from:', connectedPeerId)
+    await messageHandler.sendSavedMsg(connectedPeerId, node)
   })
 
   node.addEventListener("connection:open", event => {
-    console.log("connection opened")
+    logger.INFO("connection opened")
   });
   node.addEventListener("connection:close", () => {
-    console.log("connection closed")
+    logger.INFO("connection closed")
   });
 
 }
