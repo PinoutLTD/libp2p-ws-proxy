@@ -30,7 +30,7 @@ export class MessageHandler {
       if (protocol) {
         const clientProtocols = wsClients.get(client).protocolsToListen
         if (!clientProtocols.includes(protocol)) {
-          return
+          continue
         }
       }
         if (client.readyState === WebSocket.OPEN) {
