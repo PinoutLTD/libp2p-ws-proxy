@@ -15,6 +15,7 @@ export class MessageHandler {
   constructor(libp2pManager, logger) {
     this.libp2pManager = libp2pManager
     this.logger = logger
+    this.registeredProtocols = new Set()
   }
 
   /**
@@ -30,7 +31,7 @@ export class MessageHandler {
       if (protocol) {
         const clientProtocols = wsClients.get(client).protocolsToListen
         if (!clientProtocols.includes(protocol)) {
-          continue
+          return
         }
       }
         if (client.readyState === WebSocket.OPEN) {
@@ -84,10 +85,13 @@ export class MessageHandler {
   onWSInitialMessage(msg, wsServer, wsClients, node) {
     const protocols = msg.protocols_to_listen
     protocols.forEach((protocol) => {
-      this.libp2pManager.handle(node, protocol, async (msg, stream) => {
-        await this.libp2pManager.sendResponse(stream, { result: true })
-        this.#proxyLibp2pMsg2WS(msg, protocol, wsServer, wsClients)
-      })
+      if (!this.registeredProtocols.has(protocol)) {
+        this.libp2pManager.handle(node, protocol, async (msg, stream) => {
+          await this.libp2pManager.sendResponse(stream, { result: true })
+          this.#proxyLibp2pMsg2WS(msg, protocol, wsServer, wsClients)
+        })
+        this.registeredProtocols.add(protocol)
+      }  
     })
   }
 
