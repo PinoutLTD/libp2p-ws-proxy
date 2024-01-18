@@ -1,5 +1,4 @@
 import { WebSocketServer } from 'ws';
-import WebSocket from 'ws';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -11,81 +10,84 @@ dotenv.config();
  * @param logger Instance of the Logger class.
  */
 export class WebSocketManager {
-    constructor(messageHandler, logger) {
-        this.wsServer = this.#createWebsocketServer()
-        this.messageHandler = messageHandler
-        this.clientIdCounter = 1
-        this.clients = new Map()
-        this.logger = logger
-    }
+  constructor(messageHandler, logger) {
+    this.wsServer = this.#createWebsocketServer();
+    this.messageHandler = messageHandler;
+    this.clientIdCounter = 1;
+    this.clients = new Map();
+    this.logger = logger;
+  }
 
   /**
    * Creates websocket server.
    * @returns Instance of the server.
    */
-    #createWebsocketServer() {
-        const port = Number(process.env.PORT)
-        const wss = new WebSocketServer({ port: port }, () => {
-            this.logger.INFO(`WebSocket server listening on port ${port}`);
-        });
-        return wss
-    }
+  #createWebsocketServer() {
+    const port = Number(process.env.PORT);
+    const wss = new WebSocketServer({ port }, () => {
+      this.logger.INFO(`WebSocket server listening on port ${port}`);
+    });
+    return wss;
+  }
 
   /**
    * Updates client metadata with.
    * @param ws Instance of ws connection.
    * @param newInfo Info to add.
    */
-    updateClientInfo(ws, newInfo) {
-      if (this.clients.has(ws)) {
-        const currentInfo = this.clients.get(ws);
-        this.clients.set(ws, { ...currentInfo, ...newInfo });
-      } 
+  updateClientInfo(ws, newInfo) {
+    if (this.clients.has(ws)) {
+      const currentInfo = this.clients.get(ws);
+      this.clients.set(ws, { ...currentInfo, ...newInfo });
     }
+  }
 
   /**
    * Sets a client metadata.
    * @param ws Instance of ws connection.
    * @param req Incoming message.
    */
-    #setClient(ws, req) {
-      const clientId = this.clientIdCounter++
-      const clientInfo = {
-            id: clientId,
-            address: req.socket.remoteAddress,
-            port: req.socket.remotePort,
-        }
-      this.clients.set(ws, clientInfo)
-    }
+  #setClient(ws, req) {
+    const clientId = this.clientIdCounter++;
+    const clientInfo = {
+      id: clientId,
+      address: req.socket.remoteAddress,
+      port: req.socket.remotePort,
+    };
+    this.clients.set(ws, clientInfo);
+  }
 
-    /**
+  /**
    * Handler for a connection.
    * @param ws Instance of ws connection.
    * @param newInfo Info to add.
    */
-    onConnectionManager(node) {
-      this.wsServer.on('connection', (ws, req) => {
+  onConnectionManager(node) {
+    this.wsServer.on('connection', (ws, req) => {
+      this.#setClient(ws, req);
+      this.messageHandler.sendMsg2WSClients(
+        this.wsServer,
+        this.clients,
+        { peerId: node.peerId.toString() },
+      );
 
-        this.#setClient(ws, req)
-        this.messageHandler.sendMsg2WSClients(this.wsServer, this.clients, { "peerId": node.peerId.toString()})
+      ws.on('error', console.error);
 
-        ws.on('error', console.error)
-      
-        ws.on('message', (data) => {
-          try {
-            const msg = JSON.parse(data)
-            this.logger.INFO(msg, `Received ws message:`);
-            
-            if ("protocols_to_listen" in msg) {
-              this.updateClientInfo(ws, { protocolsToListen: msg.protocols_to_listen })
-              this.messageHandler.onWSInitialMessage(msg, this.wsServer, this.clients, node)
-            } else {
-              this.messageHandler.onWSMessage(msg, node)
-            }
-          } catch (error) {
-            this.logger.ERROR(error, "onConnectionManager");
+      ws.on('message', (data) => {
+        try {
+          const msg = JSON.parse(data);
+          this.logger.INFO(msg, 'Received ws message:');
+
+          if ('protocols_to_listen' in msg) {
+            this.updateClientInfo(ws, { protocolsToListen: msg.protocols_to_listen });
+            this.messageHandler.onWSInitialMessage(msg, this.wsServer, this.clients, node);
+          } else {
+            this.messageHandler.onWSMessage(msg, node);
           }
-        })
-      })
-    }
+        } catch (error) {
+          this.logger.ERROR(error, 'onConnectionManager');
+        }
+      });
+    });
+  }
 }

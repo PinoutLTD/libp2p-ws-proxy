@@ -1,5 +1,8 @@
 {
   "type": "module",
+  "scripts": {
+    "lint": "eslint --fix --ext .js,.jsx ."
+  },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^13.0.1",
     "@chainsafe/libp2p-yamux": "^5.0.0",
@@ -9,5 +12,11 @@
     "libp2p": "^0.46.14",
     "peer-id": "^0.16.0",
     "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-node": "^11.1.0"
   }
 }
