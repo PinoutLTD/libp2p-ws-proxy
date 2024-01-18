@@ -71,7 +71,7 @@ export class WebSocketManager {
         { peerId: node.peerId.toString() },
       );
 
-      ws.on('error', this.logger.ERROR('ws.on error'));
+      ws.on('error', console.error);
 
       ws.on('message', (data) => {
         try {

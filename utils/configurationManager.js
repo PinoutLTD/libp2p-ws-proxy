@@ -7,8 +7,9 @@ import { createFromJSON } from '@libp2p/peer-id-factory';
  * generates a new one if not and returns it.
  */
 export class ConfigurationManager {
-  constructor() {
+  constructor(logger) {
     this.filePath = process.env.PEER_ID_CONFIG_PATH;
+    this.logger = logger;
   }
 
   /**

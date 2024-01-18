@@ -2,7 +2,7 @@
 
 Module for message proxying between libp2p channels and WebSocket clients, and vice versa. Currently Libp2p nodes supports web socket transport via relay chain.
 
-## RRunning
+## Running
 
 ### Docker
 

@@ -20,7 +20,7 @@ dotenv.config();
  */
 export class Libp2pManager {
   constructor(logger) {
-    this.configuration = new ConfigurationManager();
+    this.configuration = new ConfigurationManager(logger);
     this.realayAddress = process.env.RELAY_ADDRESS;
     this.logger = logger;
   }
