@@ -1,6 +1,7 @@
 FROM node:18-alpine
 WORKDIR /proxy
 COPY . .
+RUN touch /proxy/peerIdJson.json
 RUN npm ci --only=production
 ARG PORT=8888
 ENV PORT=${PORT}
