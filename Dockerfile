@@ -1,7 +1,7 @@
 FROM node:18-alpine
 WORKDIR /proxy
 COPY . .
-RUN npm install
+RUN npm ci --only=production
 ARG PORT=8888
 ENV PORT=${PORT}
 EXPOSE ${PORT}

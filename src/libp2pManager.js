@@ -1,16 +1,16 @@
-import { noise } from '@chainsafe/libp2p-noise'
-import { mplex } from '@libp2p/mplex'
-import { webSockets } from '@libp2p/websockets'
-import { pipe } from 'it-pipe'
-import { createLibp2p } from 'libp2p'
-import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string'
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string'
-import { circuitRelayTransport } from 'libp2p/circuit-relay'
-import { identifyService } from 'libp2p/identify'
-import { multiaddr } from '@multiformats/multiaddr'
-import { ConfigurationManager } from '../utils/configurationManager.js'
-
+/* eslint-disable class-methods-use-this */
+import { noise } from '@chainsafe/libp2p-noise';
+import { mplex } from '@libp2p/mplex';
+import { webSockets } from '@libp2p/websockets';
+import { pipe } from 'it-pipe';
+import { createLibp2p } from 'libp2p';
+import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string';
+import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
+import { circuitRelayTransport } from 'libp2p/circuit-relay';
+import { identifyService } from 'libp2p/identify';
+import { multiaddr } from '@multiformats/multiaddr';
 import dotenv from 'dotenv';
+import { ConfigurationManager } from '../utils/configurationManager.js';
 
 dotenv.config();
 
@@ -20,9 +20,9 @@ dotenv.config();
  */
 export class Libp2pManager {
   constructor(logger) {
-    this.configuration = new ConfigurationManager()
-    this.realayAddress = process.env.RELAY_ADDRESS
-    this.logger = logger
+    this.configuration = new ConfigurationManager();
+    this.realayAddress = process.env.RELAY_ADDRESS;
+    this.logger = logger;
   }
 
   /**
@@ -32,29 +32,29 @@ export class Libp2pManager {
    * @returns Connection promise.
   */
   connect2NodeViaRelay(node, peerId) {
-    const address = `${this.realayAddress}/p2p-circuit/p2p/${peerId}`
+    const address = `${this.realayAddress}/p2p-circuit/p2p/${peerId}`;
     return node.dial(multiaddr(address))
-      .then(connection => connection)
-      .catch(error => {
-        this.logger.ERROR(error, "connect2NodeViaRelay")
+      .then((connection) => connection)
+      .catch((error) => {
+        this.logger.ERROR(error, 'connect2NodeViaRelay');
       });
   }
 
   /**
-   * Finds connection with a specific peerId and returns it. If no such 
+   * Finds connection with a specific peerId and returns it. If no such
    * connection is found, it returns false.
    * @param node Instance of the libp2p node.
    * @param peerId Peer Id of the desired node.
    * @returns Connection object or false.
   */
   findConnectionByPeerId(node, peerId) {
-    for (const connection of node.getConnections()) {
-      if (peerId == connection.remotePeer.toString()) {
-        this.logger.INFO(`PeerId ${peerId} connected.`)
-        return connection
-      }
+    const connection = node.getConnections().find(
+      (conn) => peerId === conn.remotePeer.toString(),
+    );
+    if (connection) {
+      this.logger.INFO(`PeerId ${peerId} connected.`);
     }
-    return false
+    return connection || false;
   }
 
   /**
@@ -62,30 +62,30 @@ export class Libp2pManager {
    * @returns Instance of the libp2p node.
   */
   async createNode() {
-    const peerId = await this.configuration.loadOrGeneratePeerId()
+    const peerId = await this.configuration.loadOrGeneratePeerId();
     const node = await createLibp2p({
-      peerId: peerId,
+      peerId,
       addresses: {
-        listen: ['/ip4/127.0.0.1/tcp/9999/ws']
+        listen: ['/ip4/127.0.0.1/tcp/9999/ws'],
       },
       transports: [
         webSockets(),
         circuitRelayTransport({
-          discoverRelays: 1
-        })
+          discoverRelays: 1,
+        }),
       ],
       streamMuxers: [
-        mplex()
+        mplex(),
       ],
       connectionEncryption: [
-        noise()
+        noise(),
       ],
       services: {
-        identify: identifyService()
-      }
+        identify: identifyService(),
+      },
 
-    })
-    return node
+    });
+    return node;
   }
 
   /**
@@ -95,14 +95,15 @@ export class Libp2pManager {
   async #getRequest(stream) {
     return pipe(
       stream,
-      async function (source) {
-        let result = ''
+      async (source) => {
+        let result = '';
+        // eslint-disable-next-line no-restricted-syntax
         for await (const data of source) {
-          result += uint8ArrayToString(data.subarray())
+          result += uint8ArrayToString(data.subarray());
         }
-        return JSON.parse(result)
-      }
-    )
+        return JSON.parse(result);
+      },
+    );
   }
 
   /**
@@ -111,10 +112,10 @@ export class Libp2pManager {
   async sendResponse(stream, msg) {
     return pipe(
       [uint8ArrayFromString(JSON.stringify(msg))],
-      stream.sink
+      stream.sink,
     ).finally(() => {
-      stream.close()
-    })
+      stream.close();
+    });
   }
 
   /**
@@ -122,8 +123,8 @@ export class Libp2pManager {
   */
   handle(node, protocol, fn) {
     return node.handle(protocol, async ({ stream }) => {
-      fn(await this.#getRequest(stream), stream)
-    }, { runOnTransientConnection: true })
+      fn(await this.#getRequest(stream), stream);
+    }, { runOnTransientConnection: true });
   }
 
   /**
@@ -131,38 +132,38 @@ export class Libp2pManager {
    * to the stream.
   */
   async #request(connection, protocol, data) {
-
-    if (connection.status !== "open") {
-      return;
+    if (connection.status !== 'open') {
+      return {};
     }
     const stream = await connection.newStream([protocol], {
-      runOnTransientConnection: true
+      runOnTransientConnection: true,
     });
     return pipe(
       [uint8ArrayFromString(JSON.stringify(data))],
       stream,
-      async function (source) {
-        let result = "";
-        for await (const data of source) {
-          result += uint8ArrayToString(data.subarray());
+      async function request(source) {
+        let result = '';
+        // eslint-disable-next-line no-restricted-syntax
+        for await (const msg of source) {
+          result += uint8ArrayToString(msg.subarray());
         }
         try {
           return JSON.parse(result);
         } catch (error) {
-          this.logger.ERROR(error.message, "#request")
-          return result
+          this.logger.ERROR(error.message, '#request');
+          return result;
         }
-      }
+      },
     );
   }
-  
+
   /**
    * Checks if the remote address of a connection is
    * the relay address.
    * @returns Boolean
   */
   #isConnectionNotRelay(remoteAddress) {
-    return remoteAddress === this.realayAddress
+    return remoteAddress === this.realayAddress;
   }
 
   /**
@@ -173,17 +174,14 @@ export class Libp2pManager {
   */
   async sendMsg(connection, data, protocol) {
     try {
-      const isRelay = this.#isConnectionNotRelay(connection.remoteAddr.toString())
-      console.log("relay", isRelay)
+      const isRelay = this.#isConnectionNotRelay(connection.remoteAddr.toString());
       if (!isRelay) {
         const response = await this.#request(connection, protocol, data);
-        this.logger.INFO(`Sending message to ${connection.remoteAddr.toString()}`)
-        this.logger.INFO(response, " got response from sendMsg");
+        this.logger.INFO(`Sending message to ${connection.remoteAddr.toString()}`);
+        this.logger.INFO(response, ' got response from sendMsg');
       }
     } catch (error) {
-      this.logger.ERROR(error.message, "sendMsg")
+      this.logger.ERROR(error.message, 'sendMsg');
     }
   }
-
 }
-
