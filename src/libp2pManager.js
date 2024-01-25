@@ -141,7 +141,7 @@ export class Libp2pManager {
     return pipe(
       [uint8ArrayFromString(JSON.stringify(data))],
       stream,
-      async function request(source) {
+      async (source) => {
         let result = '';
         // eslint-disable-next-line no-restricted-syntax
         for await (const msg of source) {

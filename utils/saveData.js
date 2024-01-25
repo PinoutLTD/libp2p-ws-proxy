@@ -26,6 +26,9 @@ export async function createDir4SavedData(logger) {
  */
 export function saveMsg2File(msg, logger) {
   const filePath = `${directoryPath}${msg.protocol}.json`;
+  fs.unlink(filePath)
+    .then(() => logger.INFO('file deleted'))
+    .catch((error) => logger.ERROR(error, 'saveMsg2File, deleting file'));
   fs.writeFile(filePath, JSON.stringify(msg))
     .then()
     .catch((error) => logger.ERROR(error, 'saveMsg2File'));

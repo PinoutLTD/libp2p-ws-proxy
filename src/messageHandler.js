@@ -16,6 +16,7 @@ export class MessageHandler {
     this.libp2pManager = libp2pManager;
     this.logger = logger;
     this.registeredProtocols = new Set();
+    this.messageQueue = [];
   }
 
   /**
@@ -73,6 +74,14 @@ export class MessageHandler {
     }
   }
 
+  processMessageQueue() {
+    if (this.messageQueue.length > 0) {
+      const msg = this.messageQueue.shift();
+      saveMsg2File(msg, this.logger);
+      this.processMessageQueue();
+    }
+  }
+
   /**
    * Handler for an initial message from a WebSocket client. It stores from which libp2p protocol
    * this client wants to get messages and opens a corresponding libp2p handler for each of one.
@@ -106,7 +115,8 @@ export class MessageHandler {
     const { serverPeerId } = msg;
 
     if (msg.save_data) {
-      saveMsg2File(msg, this.logger);
+      this.messageQueue.push(msg);
+      this.processMessageQueue();
     }
 
     if (serverPeerId) {
