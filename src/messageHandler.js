@@ -37,7 +37,8 @@ export class MessageHandler {
         }
       }
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(msg));
+        const msgWithProtocol = { ...msg, protocol };
+        client.send(JSON.stringify(msgWithProtocol));
         this.logger.INFO('Message has been sent to ws client');
       }
     }
