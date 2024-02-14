@@ -16,7 +16,6 @@ export class MessageHandler {
     this.libp2pManager = libp2pManager;
     this.logger = logger;
     this.registeredProtocols = new Set();
-    this.messageQueue = [];
   }
 
   /**
@@ -27,19 +26,30 @@ export class MessageHandler {
    * @param wsServer Instance of the websocket server.
    * @param wsClients Map of all the ws clients.
    */
-  sendMsg2WSClients(wsServer, wsClients, msg, protocol = undefined) {
+  sendMsg2WSClients(wsServer, wsClients, msg, node, protocol = undefined) {
+    console.log('libp2p msg:');
+    console.log(msg);
+    let msgWasSent = false;
     // eslint-disable-next-line no-restricted-syntax
     for (const client of wsServer.clients) {
+      console.log(wsClients.get(client));
       if (protocol) {
         const clientProtocols = wsClients.get(client).protocolsToListen;
         if (!clientProtocols.includes(protocol)) {
-          return;
+          // eslint-disable-next-line no-continue
+          continue;
         }
       }
       if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify(msg));
+        const msgWithProtocol = { ...msg, protocol };
+        client.send(JSON.stringify(msgWithProtocol));
         this.logger.INFO('Message has been sent to ws client');
+        msgWasSent = true;
       }
+    }
+    if (!msgWasSent) {
+      this.libp2pManager.unhandleProtocol(node, protocol);
+      this.registeredProtocols.delete(protocol);
     }
   }
 
@@ -50,8 +60,8 @@ export class MessageHandler {
    * @param wsServer Instance of the websocket server.
    * @param wsClients Map of all the ws clients.
    */
-  #proxyLibp2pMsg2WS(msg, protocol, wsServer, wsClients) {
-    this.sendMsg2WSClients(wsServer, wsClients, msg, protocol);
+  #proxyLibp2pMsg2WS(msg, protocol, wsServer, wsClients, node) {
+    this.sendMsg2WSClients(wsServer, wsClients, msg, node, protocol);
   }
 
   /**
@@ -74,14 +84,6 @@ export class MessageHandler {
     }
   }
 
-  processMessageQueue() {
-    if (this.messageQueue.length > 0) {
-      const msg = this.messageQueue.shift();
-      saveMsg2File(msg, this.logger);
-      this.processMessageQueue();
-    }
-  }
-
   /**
    * Handler for an initial message from a WebSocket client. It stores from which libp2p protocol
    * this client wants to get messages and opens a corresponding libp2p handler for each of one.
@@ -96,7 +98,7 @@ export class MessageHandler {
       if (!this.registeredProtocols.has(protocol)) {
         this.libp2pManager.handle(node, protocol, async (data, stream) => {
           await this.libp2pManager.sendResponse(stream, { result: true });
-          this.#proxyLibp2pMsg2WS(data, protocol, wsServer, wsClients);
+          this.#proxyLibp2pMsg2WS(data, protocol, wsServer, wsClients, node);
         });
         this.registeredProtocols.add(protocol);
       }
@@ -115,8 +117,7 @@ export class MessageHandler {
     const { serverPeerId } = msg;
 
     if (msg.save_data) {
-      this.messageQueue.push(msg);
-      this.processMessageQueue();
+      saveMsg2File(msg, this.logger);
     }
 
     if (serverPeerId) {

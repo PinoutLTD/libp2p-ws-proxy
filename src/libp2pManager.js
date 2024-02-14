@@ -184,4 +184,13 @@ export class Libp2pManager {
       this.logger.ERROR(error.message, 'sendMsg');
     }
   }
+
+  unhandleProtocol(node, protocol) {
+    try {
+      this.logger.INFO(`unhandle protocol ${protocol}`);
+      node.unhandle(protocol);
+    } catch (error) {
+      this.logger.ERROR(error.message, 'unhandleProtocol');
+    }
+  }
 }

@@ -76,7 +76,8 @@ export class WebSocketManager {
       ws.on('message', (data) => {
         try {
           const msg = JSON.parse(data);
-          this.logger.INFO(msg, 'Received ws message:');
+          // this.logger.INFO(msg, 'Received ws message:');
+          this.logger.INFO('Received ws message');
 
           if ('protocols_to_listen' in msg) {
             this.updateClientInfo(ws, { protocolsToListen: msg.protocols_to_listen });
