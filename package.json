@@ -1,7 +1,8 @@
 {
   "type": "module",
   "scripts": {
-    "lint": "eslint --fix --ext .js,.jsx ."
+    "lint": "eslint --fix --ext .js,.jsx .",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^13.0.1",
