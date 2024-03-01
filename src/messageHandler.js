@@ -74,10 +74,14 @@ export class MessageHandler {
     try {
       const files = await fs.readdir(directoryPath);
       files.forEach(async (file) => {
-        const fileContent = await fs.readFile(`${directoryPath}/${file}`, 'utf-8');
-        const msg = JSON.parse(fileContent);
-        const connection = this.libp2pManager.findConnectionByPeerId(node, connectedPeerId);
-        this.libp2pManager.sendMsg(connection, msg.data, msg.protocol);
+        try {
+          const fileContent = await fs.readFile(`${directoryPath}/${file}`, 'utf-8');
+          const msg = JSON.parse(fileContent);
+          const connection = this.libp2pManager.findConnectionByPeerId(node, connectedPeerId);
+          this.libp2pManager.sendMsg(connection, msg.data, msg.protocol);
+        } catch (error) {
+          this.logger.ERROR(error, "couldn't read file in sendSavedMsg");
+        }
       });
     } catch (error) {
       this.logger.ERROR(error, 'sendSavedMsg');
