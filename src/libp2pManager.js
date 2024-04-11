@@ -9,10 +9,7 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
 import { circuitRelayTransport } from 'libp2p/circuit-relay';
 import { identifyService } from 'libp2p/identify';
 import { multiaddr } from '@multiformats/multiaddr';
-import dotenv from 'dotenv';
 import { ConfigurationManager } from '../utils/configurationManager.js';
-
-dotenv.config();
 
 /**
  * Libp2p manager. Contains all methods that are used for libp2p communication.
@@ -21,7 +18,7 @@ dotenv.config();
 export class Libp2pManager {
   constructor(logger) {
     this.configuration = new ConfigurationManager(logger);
-    this.realayAddress = process.env.RELAY_ADDRESS;
+    this.realayAddress = '/dns4/libp2p-relay.robonomics.network/tcp/443/wss/p2p/12D3KooWEmZfGh3HEy7rQPKZ8DpJRYfFcbULN97t3hGwkB5xPmjn';
     this.logger = logger;
   }
 

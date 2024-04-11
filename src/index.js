@@ -1,12 +1,9 @@
 import { multiaddr } from '@multiformats/multiaddr';
-import dotenv from 'dotenv';
 import { Libp2pManager } from './libp2pManager.js';
 import { WebSocketManager } from './wsManager.js';
 import { MessageHandler } from './messageHandler.js';
 import { createDir4SavedData } from '../utils/saveData.js';
 import { Logger } from '../utils/logger.js';
-
-dotenv.config();
 
 async function run() {
   const logger = new Logger();
