@@ -1,13 +1,15 @@
 {
   "type": "module",
   "scripts": {
-    "lint": "eslint --fix --ext .js,.jsx ."
+    "lint": "eslint --fix --ext .js,.jsx .",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "@chainsafe/libp2p-noise": "^13.0.1",
     "@chainsafe/libp2p-yamux": "^5.0.0",
     "@libp2p/mplex": "^9.0.8",
     "@libp2p/websockets": "^7.0.9",
+    "@multiformats/multiaddr": "^12.1.14",
     "dotenv": "^16.3.1",
     "libp2p": "^0.46.14",
     "peer-id": "^0.16.0",
