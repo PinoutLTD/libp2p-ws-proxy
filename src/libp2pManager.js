@@ -60,6 +60,8 @@ export class Libp2pManager {
   */
   async createNode() {
     const peerId = await this.configuration.loadOrGeneratePeerId();
+    this.logger.INFO('Getting peerid...');
+    this.logger.INFO(`PeerId: ${peerId}`);
     const node = await createLibp2p({
       peerId,
       addresses: {
