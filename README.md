@@ -14,7 +14,7 @@ Requirements:
 Installation:
 
 ```
-git clone https://github.com/tubleronchik/libp2p-ws-proxy.git
+git clone https://github.com/PinoutLTD/libp2p-ws-proxy.git
 cd libp2p-ws-proxy
 cp .env.template .env
 ```
@@ -56,7 +56,7 @@ Requirements:
 Installation:
 
 ```
-git clone https://github.com/tubleronchik/libp2p-ws-proxy.git
+git clone https://github.com/PinoutLTD/libp2p-ws-proxy.git
 cd libp2p-ws-proxy
 npm install
 cp .env.template .env
