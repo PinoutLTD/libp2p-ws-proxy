@@ -35,7 +35,7 @@ export class MessageHandler {
       console.log(wsClients.get(client));
       if (protocol) {
         const clientProtocols = wsClients.get(client).protocolsToListen;
-        if (!clientProtocols.includes(protocol)) {
+        if (!clientProtocols?.includes(protocol)) {
           // eslint-disable-next-line no-continue
           continue;
         }
