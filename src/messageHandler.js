@@ -24,12 +24,11 @@ export class MessageHandler {
    * @param wsClients Map of all the ws clients.
    */
   sendMsg2WSClients(wsServer, wsClients, msg, node, protocol = undefined) {
-    console.log('libp2p msg:');
-    console.log(msg);
+    this.logger.INFO('libp2p msg:', msg);
     let msgWasSent = false;
     // eslint-disable-next-line no-restricted-syntax
     for (const client of wsServer.clients) {
-      console.log(wsClients.get(client));
+      this.logger.INFO(wsClients.get(client));
       if (protocol) {
         const clientProtocols = wsClients.get(client).protocolsToListen;
         if (!clientProtocols?.includes(protocol)) {
