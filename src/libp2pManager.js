@@ -100,7 +100,12 @@ export class Libp2pManager {
         for await (const data of source) {
           result += uint8ArrayToString(data.subarray());
         }
-        return JSON.parse(result);
+        try {
+          return JSON.parse(result);
+        } catch (error) {
+          this.logger.ERROR(error.message, '#getRequest');
+          return result;
+        }
       },
     );
   }
