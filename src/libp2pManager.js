@@ -18,7 +18,7 @@ import { ConfigurationManager } from '../utils/configurationManager.js';
 export class Libp2pManager {
   constructor(logger) {
     this.configuration = new ConfigurationManager(logger);
-    this.realayAddress = '/dns4/libp2p-relay.robonomics.network/tcp/443/wss/p2p/12D3KooWEmZfGh3HEy7rQPKZ8DpJRYfFcbULN97t3hGwkB5xPmjn';
+    this.realayAddress = '/dns4/libp2p-relay-1.robonomics.network/tcp/443/wss/p2p/12D3KooWEMFXXvpZUjAuj1eKR11HuzZTCQ5HmYG9MNPtsnqPSERD';
     this.logger = logger;
   }
 
