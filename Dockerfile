@@ -1,5 +1,5 @@
 FROM node:18-alpine
-WORKDIR /proxy
+WORKDIR /home/node/proxy
 COPY . .
 RUN touch /proxy/peerIdJson.json
 RUN npm ci --only=production
