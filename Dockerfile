@@ -1,13 +1,14 @@
-FROM node:18-alpine
+FROM node:18-alpine AS dependencies
 WORKDIR /proxy
 RUN chown -R node:node /proxy
 RUN chmod -R 777 /proxy
-COPY . .
-RUN touch /proxy/peerIdJson.json
+COPY package.json ./
+COPY package-lock.json ./
 RUN npm ci --only=production
+COPY . .
 ARG PORT=8888
 ENV PORT=${PORT}
 EXPOSE ${PORT}
-CMD ["node", "src/index.js"]
+CMD [ -d "node_modules" ] && npm run start || npm ci --only=production && npm run start
 EXPOSE 9999
 USER node
