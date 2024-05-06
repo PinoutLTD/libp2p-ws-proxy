@@ -1,5 +1,7 @@
 FROM node:18-alpine AS dependencies
 WORKDIR /proxy
+RUN chown -R node:node /proxy
+RUN chmod -R 777 /proxy
 COPY package.json ./
 COPY package-lock.json ./
 RUN npm ci --only=production
