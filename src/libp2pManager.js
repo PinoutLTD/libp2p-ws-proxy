@@ -65,7 +65,7 @@ export class Libp2pManager {
     const node = await createLibp2p({
       peerId,
       addresses: {
-        listen: ['/ip4/127.0.0.1/tcp/9999/ws'],
+        listen: ['/ip4/0.0.0.0/tcp/9999/ws'],
       },
       transports: [
         webSockets(),
