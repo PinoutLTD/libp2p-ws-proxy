@@ -65,18 +65,16 @@ export class WebSocketManager {
   onConnectionManager(node) {
     this.wsServer.on('connection', (ws, req) => {
       this.#setClient(ws, req);
+      const multiAddresses = node.getMultiaddrs().map((addr) => addr.toString());
       this.messageHandler.sendMsg2WSClients(
         this.wsServer,
         this.clients,
-        { peerId: node.peerId.toString() },
+        { peerId: node.peerId.toString(), multiAddresses },
       );
-
       ws.on('error', console.error);
-
       ws.on('message', (data) => {
         try {
           const msg = JSON.parse(data);
-          // this.logger.INFO(msg, 'Received ws message:');
           this.logger.INFO('Received ws message');
 
           if ('protocols_to_listen' in msg) {
