@@ -24,7 +24,7 @@ Build:
 
 Specify the port number on which the WebSocket server will be launched. 
 ```
-docker build --build-arg BUILD_FROM="node:20-alpine" -t proxy:v0.0.1 .
+docker build --build-arg BUILD_FROM="node:20-alpine" -t proxy:v0.0.1 -f build/Dockerfile .
 ```
 
 Launch:

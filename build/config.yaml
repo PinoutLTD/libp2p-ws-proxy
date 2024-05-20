@@ -1,0 +1,15 @@
+name: "Libp2p <-> WS Proxy"
+description: "Add-on to run Libp2p-ws proxy"
+version: "0.0.1"
+slug: "libp2p-proxy"
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+startup: services
+ports:
+  8888/tcp: 8888
+  9999/tcp: 9999
