@@ -31,12 +31,11 @@ jobs:
         with:
           args: |
             --all \
-            --target build \
             --docker-hub ghcr.io/pinoutltd \
             --image ${{ env.ADDON_CONTAINER_NAME }}-{arch} 
       - name: Build and Push Proxy Image 
         run: |
-          docker build --build-arg BUILD_FROM=${{ env.BUILD_FROM_PROXY }} --tag ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:latest -f build/Dockerfile .
+          docker build --build-arg BUILD_FROM=${{ env.BUILD_FROM_PROXY }} --tag ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:latest .
           docker push ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:latest
 
 
