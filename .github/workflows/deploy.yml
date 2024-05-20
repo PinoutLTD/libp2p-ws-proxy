@@ -31,6 +31,7 @@ jobs:
         with:
           args: |
             --all \
+            --target . \
             --docker-hub ghcr.io/pinoutltd \
             --image ${{ env.ADDON_CONTAINER_NAME }}-{arch} 
       - name: Build and Push Proxy Image 
