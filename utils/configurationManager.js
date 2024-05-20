@@ -13,7 +13,7 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
  */
 export class ConfigurationManager {
   constructor(logger) {
-    this.filePath = process.env.PEER_ID_CONFIG_PATH;
+    this.filePath = 'peerIdJson.json';
     this.logger = logger;
   }
 

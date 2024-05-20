@@ -1,7 +1,4 @@
 import { WebSocketServer } from 'ws';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 /**
  * Handler for messsages from libp2p and websocket channels. It proxes msgs from
@@ -23,7 +20,7 @@ export class WebSocketManager {
    * @returns Instance of the server.
    */
   #createWebsocketServer() {
-    const port = Number(process.env.PORT);
+    const port = 8888;
     const wss = new WebSocketServer({ port }, () => {
       this.logger.INFO(`WebSocket server listening on port ${port}`);
     });

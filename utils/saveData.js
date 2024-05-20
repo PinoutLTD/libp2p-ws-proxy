@@ -1,9 +1,6 @@
 import fs from 'fs/promises';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-const directoryPath = process.env.SAVED_DATA_DIR_PATH;
+const directoryPath = 'saved_data';
 
 /**
  * Creates directory for saving data if it doesn't exists.
