@@ -32,7 +32,7 @@ Launch:
 To enable access to the WebSocket server from another application, it is essential to establish a port mapping between the host and the container. While not mandatory, it is advisable to align the port numbers in the container and on the host.  So use the same port number as you did during build:
 
 ```
-docker run --name libp2p-proxy --detach -p 127.0.0.1:8888:8888 -p 127.0.0.1:9999:9999 -v ${PWD}:/proxy proxy:v0.0.1
+docker run --name libp2p-proxy --detach -p 127.0.0.1:8888:8888 -p 127.0.0.1:9999:9999 proxy:v0.0.1
 ```
 
 To see logs:
