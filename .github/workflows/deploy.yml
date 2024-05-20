@@ -1,7 +1,6 @@
 name: "Deploy"
 
 env:
-  ADDON_CONTAINER_NAME: addon-libp2p-ws-proxy
   CONTAINER_NAME: libp2p-ws-proxy
   BUILD_FROM_PROXY: node:20-alpine
 
@@ -26,14 +25,6 @@ jobs:
           registry: ghcr.io
           username: ${{github.actor}}
           password: ${{secrets.GITHUB_TOKEN}}
-      - name: Publish Addon Proxy
-        uses: home-assistant/builder@master
-        with:
-          args: |
-            --all \
-            --target . \
-            --docker-hub ghcr.io/pinoutltd \
-            --image ${{ env.ADDON_CONTAINER_NAME }}-{arch} 
       - name: Build and Push Proxy Image 
         run: |
           docker build --build-arg BUILD_FROM=${{ env.BUILD_FROM_PROXY }} --tag ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:latest .
