@@ -1,4 +1,5 @@
-FROM node:18-alpine AS dependencies
+ARG BUILD_FROM
+FROM $BUILD_FROM
 WORKDIR /proxy
 RUN chown -R node:node /proxy
 RUN chmod -R 777 /proxy
@@ -7,8 +8,6 @@ COPY package-lock.json ./
 RUN npm ci --only=production
 COPY . .
 ARG PORT=8888
-ENV PORT=${PORT}
-EXPOSE ${PORT}
 CMD [ -d "node_modules" ] && npm run start || npm ci --only=production && npm run start
 EXPOSE 9999
 USER node

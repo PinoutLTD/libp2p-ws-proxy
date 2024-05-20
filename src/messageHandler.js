@@ -1,9 +1,6 @@
 import WebSocket from 'ws';
 import fs from 'fs/promises';
-import dotenv from 'dotenv';
 import { saveMsg2File } from '../utils/saveData.js';
-
-dotenv.config();
 
 /**
  * Handler for messsages from libp2p and websocket channels. It proxes msgs from
@@ -70,7 +67,7 @@ export class MessageHandler {
    * @param node Instance of the libp2p node.
    */
   async sendSavedMsg(connectedPeerId, node) {
-    const directoryPath = process.env.SAVED_DATA_DIR_PATH;
+    const directoryPath = 'saved_data';
     try {
       const files = await fs.readdir(directoryPath);
       files.forEach(async (file) => {
