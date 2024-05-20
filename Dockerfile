@@ -1,5 +1,4 @@
-ARG BUILD_FROM
-FROM $BUILD_FROM
+FROM node:20-alpine
 WORKDIR /proxy
 RUN chown -R node:node /proxy
 RUN chmod -R 777 /proxy

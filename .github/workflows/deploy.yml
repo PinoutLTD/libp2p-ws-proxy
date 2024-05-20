@@ -2,7 +2,6 @@ name: "Deploy"
 
 env:
   CONTAINER_NAME: libp2p-ws-proxy
-  BUILD_FROM_PROXY: node:20-alpine
 
 on:
   push:
@@ -19,6 +18,11 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Login to ghcr.io
         uses: docker/login-action@v2
         with:
@@ -26,9 +30,13 @@ jobs:
           username: ${{github.actor}}
           password: ${{secrets.GITHUB_TOKEN}}
       - name: Build and Push Proxy Image 
-        run: |
-          docker build --build-arg BUILD_FROM=${{ env.BUILD_FROM_PROXY }} --tag ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:latest .
-          docker push ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:latest
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:latest
+
 
 
 
