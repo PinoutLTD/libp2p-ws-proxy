@@ -11,33 +11,23 @@ Module for message proxying between libp2p channels and WebSocket clients, and v
 Requirements:
 1. Docker
 
-Installation:
-
-```
-git clone https://github.com/PinoutLTD/libp2p-ws-proxy.git
-cd libp2p-ws-proxy
-cp .env.template .env
-```
-Set the configuration file by specifying the relay address and the directory name for data storage.
-
 Build:
 
-Specify the port number on which the WebSocket server will be launched. 
+Pull the iamge:
 ```
-docker build -t proxy:v0.0.1 .
+docker pull ghcr.io/pinoutltd/libp2p-ws-proxy:latest
 ```
 
 Launch:
 
-To enable access to the WebSocket server from another application, it is essential to establish a port mapping between the host and the container. While not mandatory, it is advisable to align the port numbers in the container and on the host.  So use the same port number as you did during build:
-
+To enable access to the WebSocket server from another application, it is essential to establish a port mapping between the host and the container. While not mandatory, it is advisable to align the port numbers in the container and on the host.
 ```
 docker run --name libp2p-proxy --detach -p 127.0.0.1:8888:8888 -p 127.0.0.1:9999:9999 proxy:v0.0.1
 ```
 
 To see logs:
 ```
-docker logs -f libp2p-proxy
+docker run --name libp2p-proxy --detach -p 127.0.0.1:8888:8888 -p 127.0.0.1:9999:9999 ghcr.io/pinoutltd/libp2p-ws-proxy:latest
 ```
 
 To stop the container:
@@ -58,13 +48,10 @@ Installation:
 git clone https://github.com/PinoutLTD/libp2p-ws-proxy.git
 cd libp2p-ws-proxy
 npm install
-cp .env.template .env
 ```
-Set the configuration file by specifying the relay address and the directory name for data storage.
 
 Launch:
 
-Specify the port number on which the WebSocket server will be launched.
 ```
 node src/index.js
 ```
