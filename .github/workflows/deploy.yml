@@ -4,9 +4,8 @@ env:
   CONTAINER_NAME: libp2p-ws-proxy
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [released]
 
 jobs:
   publish:
@@ -35,7 +34,9 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:latest
+          tags: |
+            ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:${{ github.event.release.tag_name }}
+            ghcr.io/pinoutltd/${{ env.CONTAINER_NAME }}:latest
 
 
 
