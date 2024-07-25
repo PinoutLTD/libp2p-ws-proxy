@@ -65,6 +65,7 @@ async function run() {
         }
       }
       logger.INFO(`All ${maxAttempts} reconnection attempts failed. Waiting for ${extendedInterval / 60000} minutes before retrying...`);
+      attempt = 0;
       setTimeout(reconnect, extendedInterval);
     };
 
