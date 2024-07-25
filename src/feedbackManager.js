@@ -1,4 +1,4 @@
-const protocol = "/feedback"
+const protocol = '/feedback';
 
 export class FeedbackManager {
   constructor(logger, wsManager, messageHandler) {
@@ -8,18 +8,18 @@ export class FeedbackManager {
   }
 
   sendFeedbackMessage(response, ws) {
-    this.logger.INFO(response, "feedback handler")
-    const msg = this.#formatMessage(response, protocol)
+    this.logger.INFO(response, 'feedback handler');
+    const msg = this.#formatMessage(response, protocol);
+    // eslint-disable-next-line no-restricted-syntax
     for (const client of this.wsManager.wsServer.clients) {
-      if (ws == client) {
-        client.send(JSON.stringify(msg))
+      if (ws === client) {
+        client.send(JSON.stringify(msg));
       }
     }
-    return
   }
 
-  #formatMessage(response, protocol) {
-    return { "data": { "feedback": response } , "protocol": protocol}
+  // eslint-disable-next-line class-methods-use-this
+  #formatMessage(response) {
+    return { data: { feedback: response }, protocol };
   }
-
 }
