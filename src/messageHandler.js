@@ -112,7 +112,7 @@ export class MessageHandler {
    * @param  msg The message from the ws client.
    * @param node Instance of libp2p node
    */
-  onWSMessage(msg, node) {
+  onWSMessage(msg, node, ws) {
     this.logger.INFO('Sending msg from ws to libp2p...');
     const { protocol } = msg;
     const { serverPeerId } = msg;
@@ -127,12 +127,12 @@ export class MessageHandler {
         this.libp2pManager.sendMsg(connection, msg.data, protocol);
       } else {
         this.libp2pManager.connect2NodeViaRelay(node, serverPeerId).then((connection) => {
-          this.libp2pManager.sendMsg(connection, msg.data, protocol);
+          this.libp2pManager.sendMsg(connection, msg.data, protocol, ws)
         }).catch((error) => { this.logger.ERROR(error, "onWSMessage couldn't resolve promise"); });
       }
     } else {
       node.getConnections().forEach((connection) => {
-        this.libp2pManager.sendMsg(connection, msg.data, protocol);
+        this.libp2pManager.sendMsg(connection, msg.data, protocol, ws);
       });
     }
   }

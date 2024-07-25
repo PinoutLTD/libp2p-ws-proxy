@@ -20,6 +20,11 @@ export class Libp2pManager {
     this.configuration = new ConfigurationManager(logger);
     this.realayAddress = '/dns4/libp2p-relay-1.robonomics.network/tcp/443/wss/p2p/12D3KooWEMFXXvpZUjAuj1eKR11HuzZTCQ5HmYG9MNPtsnqPSERD';
     this.logger = logger;
+    this.feedbackManager = undefined
+  }
+
+  setFeedbackManager(feedbackManager) {
+    this.feedbackManager = feedbackManager
   }
 
   /**
@@ -174,16 +179,22 @@ export class Libp2pManager {
    * @param data Message to send.
    * @param protocol Name of the Libp2p protocol.
   */
-  async sendMsg(connection, data, protocol) {
+  async sendMsg(connection, data, protocol, ws) {
     try {
       const isRelay = this.#isConnectionNotRelay(connection.remoteAddr.toString());
       if (!isRelay) {
         const response = await this.#request(connection, protocol, data);
         this.logger.INFO(`Sending message to ${connection.remoteAddr.toString()}`);
         this.logger.INFO(response, ' got response from sendMsg');
+        if (!(typeof ws === "undefined")) {
+          this.feedbackManager.sendFeedbackMessage(response, ws)
+        }
       }
     } catch (error) {
       this.logger.ERROR(error.message, 'sendMsg');
+      if (ws) {
+        this.feedbackManager.sendFeedbackMessage(error.message, ws)
+      }
     }
   }
 

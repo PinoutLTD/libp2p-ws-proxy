@@ -7,12 +7,13 @@ import { WebSocketServer } from 'ws';
  * @param logger Instance of the Logger class.
  */
 export class WebSocketManager {
-  constructor(messageHandler, logger) {
+  constructor(messageHandler, logger, node) {
     this.wsServer = this.#createWebsocketServer();
     this.messageHandler = messageHandler;
     this.clientIdCounter = 1;
     this.clients = new Map();
     this.logger = logger;
+    this.node = node;
   }
 
   /**
@@ -59,26 +60,26 @@ export class WebSocketManager {
    * @param ws Instance of ws connection.
    * @param newInfo Info to add.
    */
-  onConnectionManager(node) {
+  onConnectionManager() {
     this.wsServer.on('connection', (ws, req) => {
       this.#setClient(ws, req);
-      const multiAddresses = node.getMultiaddrs().map((addr) => addr.toString());
+
+      const multiAddresses = this.node.getMultiaddrs().map((addr) => addr.toString());
       this.messageHandler.sendMsg2WSClients(
         this.wsServer,
         this.clients,
-        { peerId: node.peerId.toString(), multiAddresses },
+        { peerId: this.node.peerId.toString(), multiAddresses },
       );
       ws.on('error', console.error);
       ws.on('message', (data) => {
         try {
           const msg = JSON.parse(data);
-          this.logger.INFO('Received ws message');
 
           if ('protocols_to_listen' in msg) {
             this.updateClientInfo(ws, { protocolsToListen: msg.protocols_to_listen });
-            this.messageHandler.onWSInitialMessage(msg, this.wsServer, this.clients, node);
+            this.messageHandler.onWSInitialMessage(msg, this.wsServer, this.clients, this.node);
           } else {
-            this.messageHandler.onWSMessage(msg, node);
+            this.messageHandler.onWSMessage(msg, this.node, ws);
           }
         } catch (error) {
           this.logger.ERROR(error, 'onConnectionManager');

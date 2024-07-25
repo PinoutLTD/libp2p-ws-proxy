@@ -5,6 +5,7 @@ import { WebSocketManager } from './wsManager.js';
 import { MessageHandler } from './messageHandler.js';
 import { createDir4SavedData } from '../utils/saveData.js';
 import { Logger } from '../utils/logger.js';
+import { FeedbackManager } from './feedbackManager.js';
 
 async function run() {
   const logger = new Logger();
@@ -13,9 +14,11 @@ async function run() {
 
   const node = await libp2pManager.createNode();
   const messageHandler = new MessageHandler(libp2pManager, logger);
-  const wsManager = new WebSocketManager(messageHandler, logger);
+  const wsManager = new WebSocketManager(messageHandler, logger, node);
   const relayAddr = multiaddr(libp2pManager.realayAddress)
-  wsManager.onConnectionManager(node);
+  const feedbackManager = new FeedbackManager(logger, wsManager, messageHandler)
+  libp2pManager.setFeedbackManager(feedbackManager)
+  wsManager.onConnectionManager();
 
   logger.INFO(`Node started with id ${node.peerId.toString()}`);
   const conn = await node.dial(relayAddr);
