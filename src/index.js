@@ -15,9 +15,9 @@ async function run() {
   const node = await libp2pManager.createNode();
   const messageHandler = new MessageHandler(libp2pManager, logger);
   const wsManager = new WebSocketManager(messageHandler, logger, node);
-  const relayAddr = multiaddr(libp2pManager.realayAddress)
-  const feedbackManager = new FeedbackManager(logger, wsManager, messageHandler)
-  libp2pManager.setFeedbackManager(feedbackManager)
+  const relayAddr = multiaddr(libp2pManager.realayAddress);
+  const feedbackManager = new FeedbackManager(logger, wsManager, messageHandler);
+  libp2pManager.setFeedbackManager(feedbackManager);
   wsManager.onConnectionManager();
 
   logger.INFO(`Node started with id ${node.peerId.toString()}`);
