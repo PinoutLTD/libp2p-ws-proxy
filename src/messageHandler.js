@@ -127,7 +127,7 @@ export class MessageHandler {
         this.libp2pManager.sendMsg(connection, msg.data, protocol);
       } else {
         this.libp2pManager.connect2NodeViaRelay(node, serverPeerId).then((connection) => {
-          this.libp2pManager.sendMsg(connection, msg.data, protocol, ws)
+          this.libp2pManager.sendMsg(connection, msg.data, protocol, ws);
         }).catch((error) => { this.logger.ERROR(error, "onWSMessage couldn't resolve promise"); });
       }
     } else {
