@@ -124,7 +124,7 @@ export class MessageHandler {
     if (serverPeerId) {
       if (this.libp2pManager.findConnectionByPeerId(node, serverPeerId)) {
         const connection = this.libp2pManager.findConnectionByPeerId(node, serverPeerId);
-        this.libp2pManager.sendMsg(connection, msg.data, protocol);
+        this.libp2pManager.sendMsg(connection, msg.data, protocol, ws);
       } else {
         this.libp2pManager.connect2NodeViaRelay(node, serverPeerId).then((connection) => {
           this.libp2pManager.sendMsg(connection, msg.data, protocol, ws);
