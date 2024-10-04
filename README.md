@@ -56,3 +56,19 @@ Launch:
 node src/index.js
 ```
 Then you can connect a websocket client and libp2p nodes to proxy messages between them.
+
+#### Service file
+A systemd service file may be used
+```
+[Unit]
+Description= Libp2p Proxy Service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/libp2p-ws-proxy/
+ExecStart=/usr/bin/node src/index.js
+User=ubuntu
+
+[Install]
+WantedBy=multi-user.target
+```
