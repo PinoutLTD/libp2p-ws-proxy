@@ -68,6 +68,8 @@ Type=simple
 WorkingDirectory=/home/ubuntu/libp2p-ws-proxy/
 ExecStart=/usr/bin/node src/index.js
 User=ubuntu
+Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
