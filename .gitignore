@@ -1,4 +1,5 @@
 node_modules/
-peerIdJson.json
+config/*.json
+!config/*.template.json
 .env
 saved_data/

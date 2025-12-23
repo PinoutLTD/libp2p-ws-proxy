@@ -1,17 +1,16 @@
-import WebSocket from 'ws';
-import fs from 'fs/promises';
-import { saveMsg2File } from '../utils/saveData.js';
+import fs from "fs/promises";
+import WebSocket from "ws";
+import { logger } from "./utils/logger.js";
+import { saveMsg2File } from "./utils/saveData.js";
 
 /**
  * Handler for messsages from libp2p and websocket channels. It proxes msgs from
  * libp2p to websocket clients and msgs from websocket clients to libp2p nodes.
  * @param  libp2pManager Instance of the Libp2pManager class.
- * @param logger Instance of the Logger class.
  */
 export class MessageHandler {
-  constructor(libp2pManager, logger) {
+  constructor(libp2pManager) {
     this.libp2pManager = libp2pManager;
-    this.logger = logger;
     this.registeredProtocols = new Set();
   }
 
@@ -23,29 +22,26 @@ export class MessageHandler {
    * @param wsServer Instance of the websocket server.
    * @param wsClients Map of all the ws clients.
    */
-  sendMsg2WSClients(wsServer, wsClients, msg, node, protocol = undefined) {
-    console.log('libp2p msg:');
+  sendMsg2WSClients(wsServer, wsClients, msg, protocol = undefined) {
+    console.log("libp2p msg:");
     console.log(msg);
     let msgWasSent = false;
-    // eslint-disable-next-line no-restricted-syntax
     for (const client of wsServer.clients) {
-      console.log(wsClients.get(client));
       if (protocol) {
         const clientProtocols = wsClients.get(client).protocolsToListen;
         if (!clientProtocols?.includes(protocol)) {
-          // eslint-disable-next-line no-continue
           continue;
         }
       }
       if (client.readyState === WebSocket.OPEN) {
         const msgWithProtocol = { ...msg, protocol };
         client.send(JSON.stringify(msgWithProtocol));
-        this.logger.INFO('Message has been sent to ws client');
+        logger.INFO("Message has been sent to ws client");
         msgWasSent = true;
       }
     }
     if (!msgWasSent) {
-      this.libp2pManager.unhandleProtocol(node, protocol);
+      this.libp2pManager.unhandleProtocol(protocol);
       this.registeredProtocols.delete(protocol);
     }
   }
@@ -57,31 +53,34 @@ export class MessageHandler {
    * @param wsServer Instance of the websocket server.
    * @param wsClients Map of all the ws clients.
    */
-  #proxyLibp2pMsg2WS(msg, protocol, wsServer, wsClients, node) {
-    this.sendMsg2WSClients(wsServer, wsClients, msg, node, protocol);
+  #proxyLibp2pMsg2WS(msg, protocol, wsServer, wsClients) {
+    this.sendMsg2WSClients(wsServer, wsClients, msg, protocol);
   }
 
   /**
    * Sends saved messages to a new connected libp2p client.
    * @param connectedPeerId Peer id of the new client.
-   * @param node Instance of the libp2p node.
    */
-  async sendSavedMsg(connectedPeerId, node) {
-    const directoryPath = 'saved_data';
+  async sendSavedMsg(connectedPeerId) {
+    const directoryPath = "saved_data";
     try {
       const files = await fs.readdir(directoryPath);
-      files.forEach(async (file) => {
+      files.forEach(async file => {
         try {
-          const fileContent = await fs.readFile(`${directoryPath}/${file}`, 'utf-8');
+          const fileContent = await fs.readFile(
+            `${directoryPath}/${file}`,
+            "utf-8"
+          );
           const msg = JSON.parse(fileContent);
-          const connection = this.libp2pManager.findConnectionByPeerId(node, connectedPeerId);
+          const connection =
+            this.libp2pManager.findConnectionByPeerId(connectedPeerId);
           this.libp2pManager.sendMsg(connection, msg.data, msg.protocol);
         } catch (error) {
-          this.logger.ERROR(error, "couldn't read file in sendSavedMsg");
+          logger.ERROR(error, "couldn't read file in sendSavedMsg");
         }
       });
     } catch (error) {
-      this.logger.ERROR(error, 'sendSavedMsg');
+      logger.ERROR(error, "sendSavedMsg");
     }
   }
 
@@ -91,15 +90,14 @@ export class MessageHandler {
    * @param  msg The message from ws client.
    * @param wsServer Instance of the websocket server.
    * @param wsClients Map of all the ws clients.
-   * @param node Instance of the libp2p node.
    */
-  onWSInitialMessage(msg, wsServer, wsClients, node) {
+  onWSInitialMessage(msg, wsServer, wsClients) {
     const protocols = msg.protocols_to_listen;
-    protocols.forEach((protocol) => {
+    protocols.forEach(protocol => {
       if (!this.registeredProtocols.has(protocol)) {
-        this.libp2pManager.handle(node, protocol, async (data, stream) => {
+        this.libp2pManager.handle(protocol, async (data, stream) => {
           await this.libp2pManager.sendResponse(stream, { result: true });
-          this.#proxyLibp2pMsg2WS(data, protocol, wsServer, wsClients, node);
+          this.#proxyLibp2pMsg2WS(data, protocol, wsServer, wsClients);
         });
         this.registeredProtocols.add(protocol);
       }
@@ -110,28 +108,33 @@ export class MessageHandler {
    * Handler for a message from a WebSocket client, pproxied to the specific
    * Libp2p server; otherwise, it is broadcasted to all Libp2p clients.
    * @param  msg The message from the ws client.
-   * @param node Instance of libp2p node
    */
-  onWSMessage(msg, node, ws) {
-    this.logger.INFO('Sending msg from ws to libp2p...');
+  onWSMessage(msg, ws) {
+    logger.INFO("Sending msg from ws to libp2p...");
     const { protocol } = msg;
     const { serverPeerId } = msg;
 
     if (msg.save_data) {
-      saveMsg2File(msg, this.logger);
+      saveMsg2File(msg);
     }
 
     if (serverPeerId) {
-      if (this.libp2pManager.findConnectionByPeerId(node, serverPeerId)) {
-        const connection = this.libp2pManager.findConnectionByPeerId(node, serverPeerId);
+      const connection =
+        this.libp2pManager.findConnectionByPeerId(serverPeerId);
+      if (connection) {
         this.libp2pManager.sendMsg(connection, msg.data, protocol, ws);
       } else {
-        this.libp2pManager.connect2NodeViaRelay(node, serverPeerId).then((connection) => {
-          this.libp2pManager.sendMsg(connection, msg.data, protocol, ws);
-        }).catch((error) => { this.logger.ERROR(error, "onWSMessage couldn't resolve promise"); });
+        this.libp2pManager
+          .connect2NodeViaRelay(serverPeerId)
+          .then(conn => {
+            this.libp2pManager.sendMsg(conn, msg.data, protocol, ws);
+          })
+          .catch(error => {
+            logger.ERROR(error, "onWSMessage couldn't resolve promise");
+          });
       }
     } else {
-      node.getConnections().forEach((connection) => {
+      this.libp2pManager.getConnections().forEach(connection => {
         this.libp2pManager.sendMsg(connection, msg.data, protocol, ws);
       });
     }
