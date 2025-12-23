@@ -1,76 +1,55 @@
-/* eslint-disable no-await-in-loop */
-import { multiaddr } from '@multiformats/multiaddr';
-import { Libp2pManager } from './libp2pManager.js';
-import { WebSocketManager } from './wsManager.js';
-import { MessageHandler } from './messageHandler.js';
-import { createDir4SavedData } from '../utils/saveData.js';
-import { Logger } from '../utils/logger.js';
-import { FeedbackManager } from './feedbackManager.js';
+import { FeedbackManager } from "./feedbackManager.js";
+import { Libp2pManager } from "./libp2pManager.js";
+import { MessageHandler } from "./messageHandler.js";
+import { logger } from "./utils/logger.js";
+import { createDir4SavedData } from "./utils/saveData.js";
+import { WebSocketManager } from "./wsManager.js";
 
 async function run() {
-  const logger = new Logger();
-  await createDir4SavedData(logger);
-  const libp2pManager = new Libp2pManager(logger);
-
+  await createDir4SavedData();
+  const libp2pManager = new Libp2pManager();
   const node = await libp2pManager.createNode();
-  const messageHandler = new MessageHandler(libp2pManager, logger);
-  const wsManager = new WebSocketManager(messageHandler, logger, node);
-  const relayAddr = multiaddr(libp2pManager.realayAddress);
-  const feedbackManager = new FeedbackManager(logger, wsManager, messageHandler);
-  libp2pManager.setFeedbackManager(feedbackManager);
+  const messageHandler = new MessageHandler(libp2pManager);
+  const wsManager = new WebSocketManager(messageHandler, node);
+  libp2pManager.setFeedbackManager(new FeedbackManager(wsManager));
   wsManager.onConnectionManager();
 
-  logger.INFO(`Node started with id ${node.peerId.toString()}`);
-  const conn = await node.dial(relayAddr);
-
-  logger.INFO(`Connected to the relay ${conn.remotePeer.toString()}`);
-
-  node.addEventListener('self:peer:update', () => {
-    logger.INFO(`Advertising with a relay address of ${node.getMultiaddrs()}`);
-  });
-
-  node.addEventListener('peer:connect', async (evt) => {
+  node.addEventListener("peer:connect", async evt => {
     const connectedPeerId = evt.detail.toString();
-    logger.INFO('received dial to me from:', connectedPeerId);
-    await messageHandler.sendSavedMsg(connectedPeerId, node);
+    logger.INFO(`received dial to me from: ${connectedPeerId}`);
+    await messageHandler.sendSavedMsg(connectedPeerId);
+    setTimeout(() => {
+      wsManager.updateMultiAddresses();
+    }, 1000);
   });
 
-  node.addEventListener('connection:open', () => {
-    logger.INFO('connection opened');
+  node.addEventListener("peer:disconnect", async evt => {
+    const connectedPeerId = evt.detail.toString();
+    logger.INFO(`peer:disconnect to me from: ${connectedPeerId}`);
+    setTimeout(() => {
+      wsManager.updateMultiAddresses();
+    }, 1000);
   });
 
-  node.addEventListener('connection:close', async () => {
-    logger.INFO('Connection closed');
-    const isRelayConnected = node.getMultiaddrs().some((addr) => addr.toString()
-      .includes(relayAddr.toString()));
-    console.log(`isRelayConnected: ${isRelayConnected}`);
-    if (isRelayConnected) {
-      return;
+  node.addEventListener("connection:open", () => {
+    logger.INFO("connection opened");
+  });
+
+  node.addEventListener("connection:close", async evt => {
+    const connectedPeerId = evt.detail.remotePeer.toString();
+    logger.INFO(`Connection closed ${connectedPeerId}`);
+    const relayAddr = libp2pManager.findRelayAddress(connectedPeerId);
+    logger.INFO(`isRelayConnected: ${!!relayAddr}`);
+    if (relayAddr) {
+      libp2pManager.reconnectRelay(relayAddr);
     }
-    let attempt = 0;
-    const maxAttempts = 5;
-    const retryInterval = 5000; // 5 seconds
-    const extendedInterval = 30 * 60 * 1000; // 30 minutes
-
-    const reconnect = async () => {
-      while (attempt < maxAttempts) {
-        try {
-          attempt++;
-          await node.dial(relayAddr);
-          logger.INFO('Reconnected successfully');
-          return;
-        } catch (error) {
-          logger.INFO(`Reconnection attempt ${attempt} failed. Retrying in ${retryInterval / 1000} seconds...`);
-          await new Promise((resolve) => { setTimeout(resolve, retryInterval); });
-        }
-      }
-      logger.INFO(`All ${maxAttempts} reconnection attempts failed. Waiting for ${extendedInterval / 60000} minutes before retrying...`);
-      attempt = 0;
-      setTimeout(reconnect, extendedInterval);
-    };
-
-    reconnect();
   });
+
+  await node.start();
+
+  logger.INFO(`Node started with id ${node.peerId.toString()}`);
+
+  await libp2pManager.connectRelays();
 }
 
 run();

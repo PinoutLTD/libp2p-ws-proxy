@@ -1,12 +1,12 @@
-import fs from 'fs/promises';
+import fs from "fs/promises";
+import { logger } from "./logger.js";
 
-const directoryPath = 'saved_data';
+const directoryPath = "saved_data";
 
 /**
  * Creates directory for saving data if it doesn't exists.
- * @param logger Instance of the Logger class.
  */
-export async function createDir4SavedData(logger) {
+export async function createDir4SavedData() {
   try {
     await fs.access(directoryPath);
     logger.INFO(`Directory '${directoryPath}' already exists.`);
@@ -19,14 +19,13 @@ export async function createDir4SavedData(logger) {
 /**
  * Save message to the file.
  * @param msg The message to save
- * @param logger Instance of the Logger class.
  */
-export function saveMsg2File(msg, logger) {
+export function saveMsg2File(msg) {
   const filePath = `${directoryPath}${msg.protocol}.json`;
   fs.unlink(filePath)
-    .then(() => logger.INFO('file deleted'))
-    .catch((error) => logger.ERROR(error, 'saveMsg2File, deleting file'));
+    .then(() => logger.INFO("file deleted"))
+    .catch(error => logger.ERROR(error, "saveMsg2File, deleting file"));
   fs.writeFile(filePath, JSON.stringify(msg))
     .then()
-    .catch((error) => logger.ERROR(error, 'saveMsg2File'));
+    .catch(error => logger.ERROR(error, "saveMsg2File"));
 }

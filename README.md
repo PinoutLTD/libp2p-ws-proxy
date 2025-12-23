@@ -22,7 +22,8 @@ Launch:
 
 To enable access to the WebSocket server from another application, it is essential to establish a port mapping between the host and the container. While not mandatory, it is advisable to align the port numbers in the container and on the host.
 ```
-docker run --name libp2p-proxy --detach -p 127.0.0.1:8888:8888 -p 127.0.0.1:9999:9999 ghcr.io/pinoutltd/libp2p-ws-proxy:latest
+curl -o- https://raw.githubusercontent.com/PinoutLTD/libp2p-ws-proxy/refs/heads/main/setup.sh | bash
+docker run --name libp2p-proxy --detach --network host -v ./config:/proxy/config -p 127.0.0.1:8888:8888 -p 127.0.0.1:9999:9999 ghcr.io/pinoutltd/libp2p-ws-proxy:latest
 ```
 
 To see logs:
@@ -40,7 +41,7 @@ docker stop libp2p-proxy
 ---
 
 Requirements:
-1. Node v.20.10.0
+1. Node v24.11.1
 
 Installation:
 

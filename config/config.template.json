@@ -1,0 +1,10 @@
+{
+  "noAnnounce": [
+    "/ip4/127.0.0.1/tcp/9988",
+    "/ip4/127.0.0.1/tcp/9999/ws",
+    "/ip4/127.0.0.1/udp/9977/webrtc-direct"
+  ],
+  "relays": [
+    "/dns4/libp2p-relay-2.robonomics.network/tcp/3011/p2p/12D3KooWQwEUdh5WfAUtViDpgRE2uF7AhDpc9DcsVLkHjq52xwps"
+  ]
+}

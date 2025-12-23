@@ -1,19 +1,19 @@
-import { WebSocketServer } from 'ws';
+import { WebSocketServer } from "ws";
+import { logger } from "./utils/logger.js";
 
 /**
  * Handler for messsages from libp2p and websocket channels. It proxes msgs from
  * libp2p to websocket clients and msgs from websocket clients to libp2p nodes.
  * @param  libp2pManager Instance of the Libp2pManager class.
- * @param logger Instance of the Logger class.
  */
 export class WebSocketManager {
-  constructor(messageHandler, logger, node) {
+  constructor(messageHandler, node) {
     this.wsServer = this.#createWebsocketServer();
     this.messageHandler = messageHandler;
     this.clientIdCounter = 1;
     this.clients = new Map();
-    this.logger = logger;
     this.node = node;
+    this.multiAddresses = [];
   }
 
   /**
@@ -23,7 +23,7 @@ export class WebSocketManager {
   #createWebsocketServer() {
     const port = 8888;
     const wss = new WebSocketServer({ port }, () => {
-      this.logger.INFO(`WebSocket server listening on port ${port}`);
+      logger.INFO(`WebSocket server listening on port ${port}`);
     });
     return wss;
   }
@@ -50,9 +50,34 @@ export class WebSocketManager {
     const clientInfo = {
       id: clientId,
       address: req.socket.remoteAddress,
-      port: req.socket.remotePort,
+      port: req.socket.remotePort
     };
     this.clients.set(ws, clientInfo);
+  }
+
+  updateMultiAddresses() {
+    const multiAddresses = this.node
+      .getMultiaddrs()
+      .map(addr => addr.toString());
+
+    const intersection = this.multiAddresses
+      .filter(x => !multiAddresses.includes(x))
+      .concat(multiAddresses.filter(x => !this.multiAddresses.includes(x)));
+
+    if (intersection.length > 0) {
+      this.multiAddresses = multiAddresses;
+      logger.INFO(
+        `WebSocket server updateMultiAddresses ${JSON.stringify(
+          multiAddresses,
+          null,
+          2
+        )}`
+      );
+      this.messageHandler.sendMsg2WSClients(this.wsServer, this.clients, {
+        peerId: this.node.peerId.toString(),
+        multiAddresses
+      });
+    }
   }
 
   /**
@@ -61,28 +86,27 @@ export class WebSocketManager {
    * @param newInfo Info to add.
    */
   onConnectionManager() {
-    this.wsServer.on('connection', (ws, req) => {
+    this.wsServer.on("connection", (ws, req) => {
       this.#setClient(ws, req);
-
-      const multiAddresses = this.node.getMultiaddrs().map((addr) => addr.toString());
-      this.messageHandler.sendMsg2WSClients(
-        this.wsServer,
-        this.clients,
-        { peerId: this.node.peerId.toString(), multiAddresses },
-      );
-      ws.on('error', console.error);
-      ws.on('message', (data) => {
+      this.updateMultiAddresses();
+      ws.on("error", console.error);
+      ws.on("message", data => {
         try {
           const msg = JSON.parse(data);
-
-          if ('protocols_to_listen' in msg) {
-            this.updateClientInfo(ws, { protocolsToListen: msg.protocols_to_listen });
-            this.messageHandler.onWSInitialMessage(msg, this.wsServer, this.clients, this.node);
+          if ("protocols_to_listen" in msg) {
+            this.updateClientInfo(ws, {
+              protocolsToListen: msg.protocols_to_listen
+            });
+            this.messageHandler.onWSInitialMessage(
+              msg,
+              this.wsServer,
+              this.clients
+            );
           } else {
-            this.messageHandler.onWSMessage(msg, this.node, ws);
+            this.messageHandler.onWSMessage(msg, ws);
           }
         } catch (error) {
-          this.logger.ERROR(error, 'onConnectionManager');
+          logger.ERROR(error, "onConnectionManager");
         }
       });
     });

@@ -5,20 +5,22 @@
     "start": "node src/index.js"
   },
   "dependencies": {
-    "@chainsafe/libp2p-noise": "^13.0.1",
-    "@chainsafe/libp2p-yamux": "^5.0.0",
-    "@libp2p/mplex": "^9.0.8",
-    "@libp2p/websockets": "^7.0.9",
-    "@multiformats/multiaddr": "^12.1.14",
-    "dotenv": "^16.3.1",
-    "libp2p": "^0.46.14",
-    "peer-id": "^0.16.0",
-    "ws": "^8.17.1"
+    "@chainsafe/libp2p-noise": "^17.0.0",
+    "@chainsafe/libp2p-yamux": "^8.0.1",
+    "@libp2p/circuit-relay-v2": "^4.1.2",
+    "@libp2p/identify": "^4.0.9",
+    "@libp2p/ping": "^3.0.9",
+    "@libp2p/tcp": "^11.0.9",
+    "@libp2p/webrtc": "^6.0.10",
+    "@libp2p/websockets": "^10.1.2",
+    "@multiformats/multiaddr": "^13.0.1",
+    "libp2p": "^3.1.2",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.1",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-node": "^11.1.0"
   }
 }
